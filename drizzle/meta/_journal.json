@@ -78,6 +78,20 @@
       "when": 1788803069141,
       "tag": "0010_melodic_silk_fever",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1788805076372,
+      "tag": "0011_simple_sentinels",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1788807455481,
+      "tag": "0012_famous_tag",
+      "breakpoints": true
     }
   ]
 }

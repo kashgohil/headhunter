@@ -5,7 +5,7 @@ import { alias } from "drizzle-orm/sqlite-core";
 import { connection } from "next/server";
 
 import { db } from "@/lib/db";
-import { auditEvents, jobDuplicateSignals, jobs, opportunities } from "@/lib/db/schema";
+import { applicationEvents, auditEvents, jobDuplicateSignals, jobs, opportunities } from "@/lib/db/schema";
 import { findDuplicateMatches } from "@/lib/jobs/duplicates";
 import { jobExtractionProvider, type ExtractedJob } from "@/lib/jobs/extraction";
 import type { CreateJobInput, JobMetadataInput } from "@/lib/jobs/validation";
@@ -117,6 +117,15 @@ async function persistJob(input: PersistedJobInput) {
       jobId,
       stage: "inbox",
       createdAt: occurredAt,
+    }).run();
+
+    tx.insert(applicationEvents).values({
+      id: crypto.randomUUID(),
+      jobId,
+      kind: "stage",
+      title: "Added to Inbox",
+      toStage: "inbox",
+      occurredAt,
     }).run();
 
     tx.insert(auditEvents).values({

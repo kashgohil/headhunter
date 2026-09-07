@@ -42,8 +42,112 @@ export const jobDuplicateSignals = sqliteTable("job_duplicate_signals", {
 export const opportunities = sqliteTable("opportunities", {
   id: text("id").primaryKey(),
   jobId: text("job_id").notNull().unique().references(() => jobs.id, { onDelete: "restrict" }),
-  stage: text("stage", { enum: ["inbox"] }).notNull().default("inbox"),
+  stage: text("stage").notNull().default("inbox"),
+  priority: text("priority", { enum: ["low", "normal", "high"] }).notNull().default("normal"),
+  interest: integer("interest").notNull().default(3),
+  nextAction: text("next_action"),
+  nextActionDueAt: integer("next_action_due_at", { mode: "timestamp_ms" }),
+  waiting: integer("waiting", { mode: "boolean" }).notNull().default(false),
+  waitingReason: text("waiting_reason"),
+  submissionWaivedAt: integer("submission_waived_at", { mode: "timestamp_ms" }),
+  submissionWaiverReason: text("submission_waiver_reason"),
+  outcomeReason: text("outcome_reason"),
+  checklist: text("checklist", { mode: "json" }).$type<Record<string, boolean>>().notNull().default(sql`'{}'`),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }),
+});
+
+export const pipelineStages = sqliteTable("pipeline_stages", {
+  id: text("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  label: text("label").notNull(),
+  category: text("category", { enum: ["inbox", "researching", "preparing", "ready_to_apply", "applied", "recruiter_screen", "interviewing", "offer", "accepted", "skipped", "rejected", "withdrawn", "ghosted", "archived"] }).notNull(),
+  position: integer("position").notNull(),
+  isTerminal: integer("is_terminal", { mode: "boolean" }).notNull().default(false),
+  isBuiltIn: integer("is_built_in", { mode: "boolean" }).notNull().default(false),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const applicationTasks = sqliteTable("application_tasks", {
+  id: text("id").primaryKey(),
+  jobId: text("job_id").notNull().references(() => jobs.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  dueAt: integer("due_at", { mode: "timestamp_ms" }),
+  completedAt: integer("completed_at", { mode: "timestamp_ms" }),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const applicationAnswers = sqliteTable("application_answers", {
+  id: text("id").primaryKey(),
+  jobId: text("job_id").notNull().references(() => jobs.id, { onDelete: "cascade" }),
+  canonicalAnswerId: text("canonical_answer_id").references(() => careerAnswers.id, { onDelete: "set null" }),
+  question: text("question").notNull(),
+  answer: text("answer").notNull(),
+  sensitiveDataWarning: text("sensitive_data_warning"),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const applicationArtifacts = sqliteTable("application_artifacts", {
+  id: text("id").primaryKey(),
+  jobId: text("job_id").notNull().references(() => jobs.id, { onDelete: "cascade" }),
+  kind: text("kind", { enum: ["cover_letter", "portfolio", "attachment"] }).notNull(),
+  name: text("name").notNull(),
+  content: text("content").notNull().default(""),
+  status: text("status", { enum: ["draft", "ready"] }).notNull().default("draft"),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const outreachDrafts = sqliteTable("outreach_drafts", {
+  id: text("id").primaryKey(),
+  jobId: text("job_id").notNull().references(() => jobs.id, { onDelete: "cascade" }),
+  kind: text("kind", { enum: ["recruiter_outreach", "referral_request", "follow_up"] }).notNull(),
+  recipient: text("recipient"),
+  subject: text("subject"),
+  body: text("body").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export type ApplicationSubmissionSnapshot = {
+  job: Record<string, unknown>;
+  documents: Array<Record<string, unknown>>;
+  answers: Array<Record<string, unknown>>;
+};
+
+export const applicationSubmissions = sqliteTable("application_submissions", {
+  id: text("id").primaryKey(),
+  jobId: text("job_id").notNull().references(() => jobs.id, { onDelete: "restrict" }),
+  method: text("method", { enum: ["company_site", "job_board", "email", "referral", "other"] }).notNull(),
+  source: text("source"),
+  referral: text("referral"),
+  confirmationId: text("confirmation_id"),
+  submittedAt: integer("submitted_at", { mode: "timestamp_ms" }).notNull(),
+  snapshot: text("snapshot", { mode: "json" }).$type<ApplicationSubmissionSnapshot>().notNull(),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const applicationEvents = sqliteTable("application_events", {
+  id: text("id").primaryKey(),
+  jobId: text("job_id").notNull().references(() => jobs.id, { onDelete: "cascade" }),
+  kind: text("kind", { enum: ["stage", "task", "answer", "document", "outreach", "submission", "note"] }).notNull(),
+  title: text("title").notNull(),
+  detail: text("detail"),
+  fromStage: text("from_stage"),
+  toStage: text("to_stage"),
+  occurredAt: integer("occurred_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const applicationInterviews = sqliteTable("application_interviews", {
+  id: text("id").primaryKey(),
+  jobId: text("job_id").notNull().references(() => jobs.id, { onDelete: "cascade" }),
+  label: text("label").notNull(),
+  scheduledAt: integer("scheduled_at", { mode: "timestamp_ms" }).notNull(),
+  status: text("status", { enum: ["scheduled", "completed", "cancelled"] }).notNull().default("scheduled"),
+  notes: text("notes"),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
 });
 
 const companyResearchTopics = ["product", "team", "culture", "compensation", "interview_process", "contact", "open_question"] as const;
@@ -196,6 +300,8 @@ export const auditEvents = sqliteTable("audit_events", {
     "tailored_resume.created",
     "resume_edit.reviewed",
     "resume.submitted",
+    "application.updated",
+    "application.submitted",
   ] }).notNull(),
   entityType: text("entity_type", { enum: [
     "job",
@@ -213,6 +319,8 @@ export const auditEvents = sqliteTable("audit_events", {
     "base_resume",
     "tailored_resume",
     "resume_edit",
+    "application",
+    "application_submission",
   ] }).notNull(),
   entityId: text("entity_id").notNull(),
   occurredAt: integer("occurred_at", { mode: "timestamp_ms" }).notNull(),

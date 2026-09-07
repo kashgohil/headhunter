@@ -3,6 +3,7 @@ import { AlertTriangle, ArrowLeft, CalendarDays, ExternalLink, MapPin, ShieldChe
 import { notFound } from "next/navigation";
 
 import { JobMetadataForm } from "@/app/(workspace)/jobs/[id]/job-metadata-form";
+import { ApplicationWorkspace } from "@/app/(workspace)/jobs/[id]/application-workspace";
 import { FitAnalysisPanel } from "@/app/(workspace)/jobs/[id]/fit-analysis-panel";
 import { ResearchWorkspace } from "@/app/(workspace)/jobs/[id]/research-workspace";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +13,7 @@ import { getJob } from "@/lib/jobs/repository";
 import { getLatestFitAnalysis } from "@/lib/fit-analysis/repository";
 import { getCareerProfile } from "@/lib/career-profile/repository";
 import { getOpportunityResearch } from "@/lib/research/repository";
+import { getApplicationWorkspace } from "@/lib/applications/repository";
 
 const dateFormatter = new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" });
 
@@ -34,11 +36,12 @@ function inputDate(value: Date | null) {
 
 export default async function JobDetailPage(props: PageProps<"/jobs/[id]">) {
   const { id } = await props.params;
-  const [job, fitAnalysis, profile, research] = await Promise.all([
+  const [job, fitAnalysis, profile, research, application] = await Promise.all([
     getJob(id),
     getLatestFitAnalysis(id),
     getCareerProfile(),
     getOpportunityResearch(id),
+    getApplicationWorkspace(id),
   ]);
 
   if (!job) notFound();
@@ -88,6 +91,30 @@ export default async function JobDetailPage(props: PageProps<"/jobs/[id]">) {
           </div>
         </div>
       ) : null}
+
+      {application.opportunity ? <ApplicationWorkspace jobId={job.id} data={{
+        opportunity: {
+          stage: application.opportunity.stage,
+          nextAction: application.opportunity.nextAction,
+          nextActionDueAt: application.opportunity.nextActionDueAt?.toISOString() ?? null,
+          waiting: application.opportunity.waiting,
+          waitingReason: application.opportunity.waitingReason,
+          checklist: application.opportunity.checklist,
+        },
+        tasks: application.tasks.map((item) => ({ ...item, dueAt: item.dueAt?.toISOString() ?? null, completedAt: item.completedAt?.toISOString() ?? null })),
+        answers: application.answers.map((item) => ({ ...item, createdAt: undefined, updatedAt: item.updatedAt.toISOString() })),
+        artifacts: application.artifacts.map((item) => ({ ...item, createdAt: undefined, updatedAt: item.updatedAt.toISOString() })),
+        outreach: application.outreach.map((item) => ({ ...item, createdAt: undefined, updatedAt: item.updatedAt.toISOString() })),
+        submissions: application.submissions.map((item) => ({ ...item, createdAt: undefined, submittedAt: item.submittedAt.toISOString() })),
+        events: [
+          ...application.events.map((item) => ({ ...item, occurredAt: item.occurredAt.toISOString() })),
+          { id: `job-${job.id}`, kind: "note", title: "Job captured", detail: "Original source preserved", occurredAt: job.capturedAt.toISOString() },
+        ],
+        libraryAnswers: application.libraryAnswers.map((item) => ({ id: item.id, question: item.question, answer: item.answer, contexts: item.contexts })),
+        resumes: application.resumes.map((item) => ({ ...item, submittedAt: item.submittedAt?.toISOString() ?? null, updatedAt: item.updatedAt.toISOString() })),
+        interviews: application.interviews.map((item) => ({ ...item, scheduledAt: item.scheduledAt.toISOString(), createdAt: undefined, updatedAt: undefined })),
+        stages: application.stages.map((item) => ({ key: item.key, label: item.label, category: item.category, isTerminal: item.isTerminal })),
+      }} /> : null}
 
       <FitAnalysisPanel jobId={job.id} analysis={fitAnalysis} evidenceReferences={evidenceReferences} />
 
