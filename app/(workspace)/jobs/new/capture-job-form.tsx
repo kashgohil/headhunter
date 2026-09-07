@@ -1,12 +1,13 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { ArrowRight, LoaderCircle } from "lucide-react";
 
 import { captureJob, type CaptureJobState } from "@/app/(workspace)/jobs/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 
 const initialState: CaptureJobState = {};
@@ -33,9 +34,29 @@ function FieldError({ messages }: { messages?: string[] }) {
 
 export function CaptureJobForm() {
   const [state, formAction, pending] = useActionState(captureJob, initialState);
+  const [sourceType, setSourceType] = useState<"pasted" | "manual">("pasted");
 
   return (
     <form action={formAction} className="space-y-7">
+      <fieldset className="space-y-3">
+        <legend className="text-sm font-medium">How are you adding this job?</legend>
+        <RadioGroup
+          name="sourceType"
+          value={sourceType}
+          onValueChange={(value) => setSourceType(value as "pasted" | "manual")}
+          className="grid gap-3 sm:grid-cols-2"
+        >
+          <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-4 transition-colors hover:bg-muted/45 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5">
+            <RadioGroupItem value="pasted" className="mt-0.5" />
+            <span><span className="block text-sm font-medium">Paste a description</span><span className="mt-1 block text-xs leading-5 text-muted-foreground">Extract useful details from the source text.</span></span>
+          </label>
+          <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-4 transition-colors hover:bg-muted/45 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5">
+            <RadioGroupItem value="manual" className="mt-0.5" />
+            <span><span className="block text-sm font-medium">Enter it manually</span><span className="mt-1 block text-xs leading-5 text-muted-foreground">Save a role even when no source text is available.</span></span>
+          </label>
+        </RadioGroup>
+      </fieldset>
+
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="space-y-2">
           <label htmlFor="title" className="text-sm font-medium">Role title</label>
@@ -58,7 +79,7 @@ export function CaptureJobForm() {
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="sourceUrl" className="text-sm font-medium">Source URL <span className="font-normal text-muted-foreground">Optional</span></label>
+          <label htmlFor="sourceUrl" className="text-sm font-medium">Reference URL <span className="font-normal text-muted-foreground">Optional</span></label>
           <Input id="sourceUrl" name="sourceUrl" type="url" placeholder="https://company.com/jobs/..." aria-invalid={Boolean(state.errors?.sourceUrl)} />
           <FieldError messages={state.errors?.sourceUrl} />
         </div>
@@ -66,10 +87,10 @@ export function CaptureJobForm() {
 
       <div className="space-y-2">
         <div className="flex items-baseline justify-between gap-4">
-          <label htmlFor="originalDescription" className="text-sm font-medium">Original job description</label>
-          <span className="text-xs text-muted-foreground">Stored as captured</span>
+          <label htmlFor="originalDescription" className="text-sm font-medium">{sourceType === "pasted" ? "Original job description" : "Source notes"}</label>
+          <span className="text-xs text-muted-foreground">{sourceType === "pasted" ? "Stored as captured" : "Optional"}</span>
         </div>
-        <Textarea id="originalDescription" name="originalDescription" placeholder="Paste the complete job description here…" className="min-h-72 font-mono text-[13px]" aria-invalid={Boolean(state.errors?.originalDescription)} />
+        <Textarea id="originalDescription" name="originalDescription" placeholder={sourceType === "pasted" ? "Paste the complete job description here…" : "Add any context you want to preserve…"} className="min-h-72 font-mono text-[13px]" aria-invalid={Boolean(state.errors?.originalDescription)} />
         <FieldError messages={state.errors?.originalDescription} />
       </div>
 

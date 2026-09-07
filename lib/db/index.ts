@@ -5,6 +5,7 @@ import path from "node:path";
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
+import { PHASE_PRODUCTION_BUILD } from "next/constants";
 
 import * as schema from "@/lib/db/schema";
 
@@ -22,4 +23,6 @@ sqlite.pragma("foreign_keys = ON");
 
 export const db = drizzle(sqlite, { schema });
 
-migrate(db, { migrationsFolder: path.resolve(process.cwd(), "drizzle") });
+if (process.env.NEXT_PHASE !== PHASE_PRODUCTION_BUILD) {
+  migrate(db, { migrationsFolder: path.resolve(process.cwd(), "drizzle") });
+}

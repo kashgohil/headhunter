@@ -22,6 +22,20 @@
       "when": 1788779429759,
       "tag": "0002_greedy_maginty",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1788781414048,
+      "tag": "0003_brave_electro",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1788781886427,
+      "tag": "0004_flippant_mister_sinister",
+      "breakpoints": true
     }
   ]
 }

@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 export const jobs = sqliteTable("jobs", {
   id: text("id").primaryKey(),
@@ -7,10 +7,37 @@ export const jobs = sqliteTable("jobs", {
   company: text("company").notNull(),
   location: text("location"),
   sourceUrl: text("source_url"),
-  sourceType: text("source_type", { enum: ["pasted", "manual"] }).notNull().default("pasted"),
+  sourceType: text("source_type", { enum: ["url", "pasted", "manual"] }).notNull().default("pasted"),
+  sourceFetchedAt: integer("source_fetched_at", { mode: "timestamp_ms" }),
   originalDescription: text("original_description").notNull(),
+  employmentType: text("employment_type"),
+  workArrangement: text("work_arrangement", { enum: ["remote", "hybrid", "on_site", "unknown"] }).notNull().default("unknown"),
+  seniority: text("seniority"),
+  minimumCompensation: integer("minimum_compensation"),
+  maximumCompensation: integer("maximum_compensation"),
+  compensationCurrency: text("compensation_currency"),
+  postedAt: integer("posted_at", { mode: "timestamp_ms" }),
+  applicationDeadline: integer("application_deadline", { mode: "timestamp_ms" }),
+  responsibilities: text("responsibilities", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+  requiredQualifications: text("required_qualifications", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+  preferredQualifications: text("preferred_qualifications", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+  skills: text("skills", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+  technologies: text("technologies", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+  extractionConfidence: text("extraction_confidence", { enum: ["not_run", "low", "medium", "high"] }).notNull().default("not_run"),
+  metadataUpdatedAt: integer("metadata_updated_at", { mode: "timestamp_ms" }),
   capturedAt: integer("captured_at", { mode: "timestamp_ms" }).notNull(),
 });
+
+export const jobDuplicateSignals = sqliteTable("job_duplicate_signals", {
+  id: text("id").primaryKey(),
+  jobId: text("job_id").notNull().references(() => jobs.id, { onDelete: "cascade" }),
+  candidateJobId: text("candidate_job_id").notNull().references(() => jobs.id, { onDelete: "cascade" }),
+  reason: text("reason", { enum: ["exact_url", "same_role", "similar_description"] }).notNull(),
+  similarity: real("similarity").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+}, (table) => [
+  uniqueIndex("job_duplicate_pair_unique").on(table.jobId, table.candidateJobId),
+]);
 
 export const opportunities = sqliteTable("opportunities", {
   id: text("id").primaryKey(),
@@ -21,7 +48,7 @@ export const opportunities = sqliteTable("opportunities", {
 
 export const auditEvents = sqliteTable("audit_events", {
   id: text("id").primaryKey(),
-  action: text("action", { enum: ["job.captured", "search_strategy.saved"] }).notNull(),
+  action: text("action", { enum: ["job.captured", "job.metadata_updated", "search_strategy.saved"] }).notNull(),
   entityType: text("entity_type", { enum: ["job", "search_strategy"] }).notNull(),
   entityId: text("entity_id").notNull(),
   occurredAt: integer("occurred_at", { mode: "timestamp_ms" }).notNull(),
