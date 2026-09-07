@@ -45,7 +45,7 @@ Define search strategy -> validate practical constraints -> save immutable versi
 
 ### Acceptance criteria
 
-- A strategy captures target and adjacent roles, seniority, locations, work arrangements, work authorization, sponsorship needs, compensation, and weekly time budget.
+- A strategy captures target and adjacent roles, seniority, industries, company stages and sizes, locations, work arrangements, relocation and time-zone limits, work authorization, sponsorship needs, compensation and flexibility, weekly time budget, and search pace.
 - Hard blockers remain distinct from soft preferences.
 - Flexible list input is normalized and duplicate entries are removed.
 - Compensation and time-budget constraints are validated before persistence.
