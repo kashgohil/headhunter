@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 export const jobs = sqliteTable("jobs", {
   id: text("id").primaryKey(),
@@ -44,6 +44,34 @@ export const opportunities = sqliteTable("opportunities", {
   jobId: text("job_id").notNull().unique().references(() => jobs.id, { onDelete: "restrict" }),
   stage: text("stage", { enum: ["inbox"] }).notNull().default("inbox"),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+const companyResearchTopics = ["product", "team", "culture", "compensation", "interview_process", "contact", "open_question"] as const;
+const researchProvenance = ["sourced_fact", "user_note", "inference"] as const;
+const researchSourceStates = ["current", "stale", "inaccessible"] as const;
+
+export const companyResearchEntries = sqliteTable("company_research_entries", {
+  id: text("id").primaryKey(),
+  companyName: text("company_name").notNull(),
+  normalizedCompanyName: text("normalized_company_name").notNull(),
+  topic: text("topic", { enum: companyResearchTopics }).notNull(),
+  content: text("content").notNull(),
+  provenance: text("provenance", { enum: researchProvenance }).notNull(),
+  sourceUrl: text("source_url"),
+  sourceState: text("source_state", { enum: researchSourceStates }),
+  accessedAt: integer("accessed_at", { mode: "timestamp_ms" }),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+}, (table) => [
+  index("company_research_name_idx").on(table.normalizedCompanyName),
+]);
+
+export const opportunityResearchNotes = sqliteTable("opportunity_research_notes", {
+  id: text("id").primaryKey(),
+  jobId: text("job_id").notNull().unique().references(() => jobs.id, { onDelete: "cascade" }),
+  content: text("content").notNull().default(""),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
 });
 
 const resumeTemplates = ["classic", "modern", "compact", "minimal"] as const;
@@ -161,6 +189,9 @@ export const auditEvents = sqliteTable("audit_events", {
     "career_evidence.state_changed",
     "fit_analysis.created",
     "fit_analysis.overridden",
+    "company_research.created",
+    "company_research.source_state_changed",
+    "opportunity_research.updated",
     "base_resume.created",
     "tailored_resume.created",
     "resume_edit.reviewed",
@@ -177,6 +208,8 @@ export const auditEvents = sqliteTable("audit_events", {
     "career_answer",
     "career_voice",
     "fit_analysis",
+    "company_research",
+    "opportunity_research",
     "base_resume",
     "tailored_resume",
     "resume_edit",

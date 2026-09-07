@@ -4,12 +4,14 @@ import { notFound } from "next/navigation";
 
 import { JobMetadataForm } from "@/app/(workspace)/jobs/[id]/job-metadata-form";
 import { FitAnalysisPanel } from "@/app/(workspace)/jobs/[id]/fit-analysis-panel";
+import { ResearchWorkspace } from "@/app/(workspace)/jobs/[id]/research-workspace";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getJob } from "@/lib/jobs/repository";
 import { getLatestFitAnalysis } from "@/lib/fit-analysis/repository";
 import { getCareerProfile } from "@/lib/career-profile/repository";
+import { getOpportunityResearch } from "@/lib/research/repository";
 
 const dateFormatter = new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" });
 
@@ -32,7 +34,12 @@ function inputDate(value: Date | null) {
 
 export default async function JobDetailPage(props: PageProps<"/jobs/[id]">) {
   const { id } = await props.params;
-  const [job, fitAnalysis, profile] = await Promise.all([getJob(id), getLatestFitAnalysis(id), getCareerProfile()]);
+  const [job, fitAnalysis, profile, research] = await Promise.all([
+    getJob(id),
+    getLatestFitAnalysis(id),
+    getCareerProfile(),
+    getOpportunityResearch(id),
+  ]);
 
   if (!job) notFound();
 
@@ -83,6 +90,21 @@ export default async function JobDetailPage(props: PageProps<"/jobs/[id]">) {
       ) : null}
 
       <FitAnalysisPanel jobId={job.id} analysis={fitAnalysis} evidenceReferences={evidenceReferences} />
+
+      <ResearchWorkspace
+        jobId={job.id}
+        company={job.company}
+        entries={research.companyEntries.map((entry) => ({
+          id: entry.id,
+          topic: entry.topic,
+          content: entry.content,
+          provenance: entry.provenance,
+          sourceUrl: entry.sourceUrl,
+          sourceState: entry.sourceState,
+          accessedAt: entry.accessedAt?.toISOString() ?? null,
+        }))}
+        opportunityNote={research.opportunityNote?.content ?? ""}
+      />
 
       <Card className="mt-8">
         <CardHeader className="border-b border-border pb-6"><CardTitle>Structured job details</CardTitle><p className="text-sm leading-6 text-muted-foreground">Review the extracted fields and correct anything the source expressed differently.</p></CardHeader>
