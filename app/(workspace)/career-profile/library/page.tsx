@@ -60,7 +60,7 @@ export default async function CareerLibraryPage() {
               {items.length ? (
                 <div className="grid gap-3 lg:grid-cols-2">
                   {items.map((item) => (
-                    <Card key={item.id} className={cn("gap-4 py-5", (item.verificationState === "archived" || item.verificationState === "prohibited") && "bg-muted/20")}>
+                    <Card id={`evidence-${item.id}`} key={item.id} className={cn("scroll-mt-6 gap-4 py-5", (item.verificationState === "archived" || item.verificationState === "prohibited") && "bg-muted/20")}>
                       <CardHeader className="grid gap-3 px-5 sm:grid-cols-[1fr_auto] sm:px-6">
                         <div>
                           <CardTitle className="text-base leading-6">{item.title}</CardTitle>

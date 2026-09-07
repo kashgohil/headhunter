@@ -12,7 +12,7 @@ This document translates the Phase 0 requirements in the [product plan](./produc
 - **Access:** single-user local development. Authentication is required before any hosted deployment and every Server Action must gain an authorization check at that boundary.
 - **UI:** Tailwind CSS utilities and theme-adapted shadcn/ui components, with Geist Sans and Geist Mono supplied through `next/font`.
 - **Motion:** Motion is used only for purposeful state feedback. Frequent navigation remains instant and reduced-motion preferences are respected.
-- **AI:** extraction and analysis are outside the first slice. When added, providers sit behind an interface and every artifact records source versions, provenance, confidence, and approval state.
+- **Analysis:** job extraction remains provider-backed; fit analysis is currently deterministic and local so every saved result remains traceable to its job, strategy version, evidence references, and weights.
 
 ## First vertical slice
 
@@ -90,3 +90,25 @@ Add experience -> link a structured achievement -> add contextual skills
 - Every create, edit, and evidence-state change produces an audit event.
 
 Resume import and AI extraction can populate these same records later without bypassing their review state or provenance.
+
+## Fourth vertical slice
+
+Explainable fit turns a captured job into an inspectable decision aid:
+
+```text
+Select a job -> compare structured role data with strategy and career evidence
+             -> score independent dimensions and classify gaps
+             -> recommend a next move with reasons for and against
+             -> reweight into a new version or record a human override
+```
+
+### Acceptance criteria
+
+- Qualifications, experience and skills, seniority, location and compensation, preferences, freshness, referral access, and preparation effort remain separate dimensions.
+- Unknown dimensions show as unknown and are excluded when the weighted total is normalized; referral access defaults to unknown until contacts exist.
+- Gaps distinguish hard blockers, material gaps, addressable positioning, transferable evidence, missing evidence, optional requirements, and unknown data.
+- The recommendation supports apply now, research first, seek referral first, stretch, monitor/defer, and skip.
+- Each result exposes reasons for and against the recommendation, the exact weights, linked evidence records, the strategy version, and an immutable analysis version.
+- Reweighting creates a new analysis version. A human override preserves both the calculated recommendation and the user’s reason.
+- The latest effective recommendation and score are visible in the job inbox.
+- The analyzer is deterministic and covered independently from persistence and presentation.

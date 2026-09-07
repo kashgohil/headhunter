@@ -5,11 +5,21 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { listJobs } from "@/lib/jobs/repository";
+import { listLatestFitAnalyses } from "@/lib/fit-analysis/repository";
+
+const recommendationLabel = {
+  apply_now: "Apply now",
+  research_first: "Research first",
+  seek_referral_first: "Seek referral first",
+  stretch: "Stretch",
+  monitor: "Monitor",
+  skip: "Skip",
+};
 
 const dateFormatter = new Intl.DateTimeFormat("en", { day: "numeric", month: "short", year: "numeric" });
 
 export default async function JobsPage() {
-  const jobs = await listJobs();
+  const [jobs, fitAnalyses] = await Promise.all([listJobs(), listLatestFitAnalyses()]);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 sm:py-12 lg:px-12 lg:py-14">
@@ -40,18 +50,23 @@ export default async function JobsPage() {
           </Card>
         ) : (
           <div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card shadow-[0_1px_2px_rgba(28,25,20,0.04)]">
-            {jobs.map((job) => (
+            {jobs.map((job) => {
+              const analysis = fitAnalyses.get(job.id);
+              const recommendation = analysis?.overriddenRecommendation ?? analysis?.recommendation;
+              return (
               <Link key={job.id} href={`/jobs/${job.id}`} className="group grid gap-4 px-5 py-5 outline-none hover:bg-muted/60 focus-visible:bg-muted/60 sm:grid-cols-[1fr_auto] sm:items-center sm:px-6">
                 <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2"><h3 className="truncate text-sm font-semibold sm:text-base">{job.title}</h3><Badge variant="outline">Inbox</Badge></div>
+                  <div className="flex flex-wrap items-center gap-2"><h3 className="truncate text-sm font-semibold sm:text-base">{job.title}</h3>{recommendation ? <Badge variant={recommendation === "apply_now" ? "signal" : "outline"}>{recommendationLabel[recommendation]}{analysis?.overriddenRecommendation ? " · overridden" : ""}</Badge> : <Badge variant="outline">Not analyzed</Badge>}</div>
                   <p className="mt-1 text-sm text-muted-foreground">{job.company}{job.location ? ` · ${job.location}` : ""}</p>
                 </div>
                 <div className="flex items-center justify-between gap-5 sm:justify-end">
+                  {analysis ? <span className="font-mono text-sm font-semibold">{analysis.score}/100</span> : null}
                   <span className="text-xs text-muted-foreground">Captured {dateFormatter.format(job.capturedAt)}</span>
                   <ArrowUpRight className="size-4 text-muted-foreground" />
                 </div>
               </Link>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>

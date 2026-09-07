@@ -67,6 +67,8 @@ export const auditEvents = sqliteTable("audit_events", {
     "career_voice.created",
     "career_voice.updated",
     "career_evidence.state_changed",
+    "fit_analysis.created",
+    "fit_analysis.overridden",
   ] }).notNull(),
   entityType: text("entity_type", { enum: [
     "job",
@@ -78,6 +80,7 @@ export const auditEvents = sqliteTable("audit_events", {
     "career_story",
     "career_answer",
     "career_voice",
+    "fit_analysis",
   ] }).notNull(),
   entityId: text("entity_id").notNull(),
   occurredAt: integer("occurred_at", { mode: "timestamp_ms" }).notNull(),
@@ -109,6 +112,26 @@ export const searchStrategyVersions = sqliteTable("search_strategy_versions", {
   searchPace: text("search_pace", { enum: ["quality", "balanced", "volume"] }).notNull().default("balanced"),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
 });
+
+export const fitAnalyses = sqliteTable("fit_analyses", {
+  id: text("id").primaryKey(),
+  jobId: text("job_id").notNull().references(() => jobs.id, { onDelete: "cascade" }),
+  searchStrategyVersionId: text("search_strategy_version_id").references(() => searchStrategyVersions.id, { onDelete: "set null" }),
+  version: integer("version").notNull(),
+  score: integer("score").notNull(),
+  recommendation: text("recommendation", { enum: ["apply_now", "research_first", "seek_referral_first", "stretch", "monitor", "skip"] }).notNull(),
+  dimensions: text("dimensions", { mode: "json" }).$type<Record<string, unknown>>().notNull(),
+  gaps: text("gaps", { mode: "json" }).$type<Record<string, unknown>[]>().notNull().default(sql`'[]'`),
+  reasonsFor: text("reasons_for", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+  reasonsAgainst: text("reasons_against", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+  weights: text("weights", { mode: "json" }).$type<Record<string, number>>().notNull(),
+  evidenceIds: text("evidence_ids", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+  overriddenRecommendation: text("overridden_recommendation", { enum: ["apply_now", "research_first", "seek_referral_first", "stretch", "monitor", "skip"] }),
+  overrideReason: text("override_reason"),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+}, (table) => [
+  uniqueIndex("fit_analysis_job_version_unique").on(table.jobId, table.version),
+]);
 
 const evidenceSourceTypes = ["user_entered", "imported", "ai_extracted"] as const;
 const evidenceStates = ["needs_clarification", "verified", "archived", "prohibited"] as const;

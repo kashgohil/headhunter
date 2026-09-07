@@ -3,10 +3,13 @@ import { AlertTriangle, ArrowLeft, CalendarDays, ExternalLink, MapPin, ShieldChe
 import { notFound } from "next/navigation";
 
 import { JobMetadataForm } from "@/app/(workspace)/jobs/[id]/job-metadata-form";
+import { FitAnalysisPanel } from "@/app/(workspace)/jobs/[id]/fit-analysis-panel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getJob } from "@/lib/jobs/repository";
+import { getLatestFitAnalysis } from "@/lib/fit-analysis/repository";
+import { getCareerProfile } from "@/lib/career-profile/repository";
 
 const dateFormatter = new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" });
 
@@ -29,9 +32,17 @@ function inputDate(value: Date | null) {
 
 export default async function JobDetailPage(props: PageProps<"/jobs/[id]">) {
   const { id } = await props.params;
-  const job = await getJob(id);
+  const [job, fitAnalysis, profile] = await Promise.all([getJob(id), getLatestFitAnalysis(id), getCareerProfile()]);
 
   if (!job) notFound();
+
+  const usedEvidenceIds = new Set(fitAnalysis?.evidenceIds ?? []);
+  const evidenceReferences = [
+    ...profile.experiences.map((item) => ({ id: item.id, label: `${item.title} · ${item.company}`, href: `/career-profile#evidence-${item.id}` })),
+    ...profile.achievements.map((item) => ({ id: item.id, label: item.result, href: `/career-profile#evidence-${item.id}` })),
+    ...profile.skills.map((item) => ({ id: item.id, label: item.name, href: `/career-profile#evidence-${item.id}` })),
+    ...profile.profileItems.map((item) => ({ id: item.id, label: item.title, href: `/career-profile/library#evidence-${item.id}` })),
+  ].filter((item) => usedEvidenceIds.has(item.id));
 
   return (
     <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 sm:py-12 lg:px-12 lg:py-14">
@@ -70,6 +81,8 @@ export default async function JobDetailPage(props: PageProps<"/jobs/[id]">) {
           </div>
         </div>
       ) : null}
+
+      <FitAnalysisPanel jobId={job.id} analysis={fitAnalysis} evidenceReferences={evidenceReferences} />
 
       <Card className="mt-8">
         <CardHeader className="border-b border-border pb-6"><CardTitle>Structured job details</CardTitle><p className="text-sm leading-6 text-muted-foreground">Review the extracted fields and correct anything the source expressed differently.</p></CardHeader>

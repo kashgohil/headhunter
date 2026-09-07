@@ -254,7 +254,7 @@ export default async function CareerProfilePage() {
         {profile.experiences.length ? (
           <div className="space-y-3">
             {profile.experiences.map((item) => (
-              <Card key={item.id} className={cn("gap-4 py-5", (item.verificationState === "archived" || item.verificationState === "prohibited") && "bg-muted/20")}>
+              <Card id={`evidence-${item.id}`} key={item.id} className={cn("scroll-mt-6 gap-4 py-5", (item.verificationState === "archived" || item.verificationState === "prohibited") && "bg-muted/20")}>
                 <CardHeader className="grid gap-4 px-5 sm:grid-cols-[1fr_auto] sm:px-6">
                   <div>
                     <CardTitle className="text-lg">{item.title}</CardTitle>
@@ -291,7 +291,7 @@ export default async function CareerProfilePage() {
             {profile.achievements.map((item) => {
               const experience = experienceById.get(item.experienceId);
               return (
-                <Card key={item.id} className={cn("gap-4 py-5", (item.verificationState === "archived" || item.verificationState === "prohibited") && "bg-muted/20")}>
+                <Card id={`evidence-${item.id}`} key={item.id} className={cn("scroll-mt-6 gap-4 py-5", (item.verificationState === "archived" || item.verificationState === "prohibited") && "bg-muted/20")}>
                   <CardHeader className="grid gap-4 px-5 sm:grid-cols-[1fr_auto] sm:px-6">
                     <div>
                       <CardTitle className="text-base leading-6">{item.result}</CardTitle>
@@ -328,7 +328,7 @@ export default async function CareerProfilePage() {
         {profile.skills.length ? (
           <div className="grid gap-3 lg:grid-cols-2">
             {profile.skills.map((item) => (
-              <Card key={item.id} className={cn("gap-4 py-5", (item.verificationState === "archived" || item.verificationState === "prohibited") && "bg-muted/20")}>
+              <Card id={`evidence-${item.id}`} key={item.id} className={cn("scroll-mt-6 gap-4 py-5", (item.verificationState === "archived" || item.verificationState === "prohibited") && "bg-muted/20")}>
                 <CardHeader className="grid gap-3 px-5 sm:grid-cols-[1fr_auto] sm:px-6">
                   <div>
                     <CardTitle>{item.name}</CardTitle>

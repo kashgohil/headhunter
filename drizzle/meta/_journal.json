@@ -57,6 +57,13 @@
       "when": 1788788789648,
       "tag": "0007_secret_hex",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1788793361458,
+      "tag": "0008_tricky_corsair",
+      "breakpoints": true
     }
   ]
 }
