@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, LockKeyhole } from "lucide-react";
 
 import { CaptureJobForm } from "@/app/(workspace)/jobs/new/capture-job-form";
+import { UrlCaptureForm } from "@/app/(workspace)/jobs/new/url-capture-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -18,10 +19,16 @@ export default function NewJobPage() {
         <div className="flex items-center gap-2 text-xs text-muted-foreground"><LockKeyhole className="size-3.5" /> Stored on this device</div>
       </div>
 
-      <Card>
-        <CardHeader className="border-b border-border pb-6"><CardTitle>Role details</CardTitle><CardDescription>Required fields are kept intentionally minimal.</CardDescription></CardHeader>
-        <CardContent><CaptureJobForm /></CardContent>
-      </Card>
+      <div className="space-y-5">
+        <Card>
+          <CardHeader className="border-b border-border pb-6"><CardTitle>Import from a job link</CardTitle><CardDescription>Best for public job pages with accessible source content.</CardDescription></CardHeader>
+          <CardContent><UrlCaptureForm /></CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="border-b border-border pb-6"><CardTitle>Paste or enter manually</CardTitle><CardDescription>Use this when a site blocks import or you only have partial details.</CardDescription></CardHeader>
+          <CardContent><CaptureJobForm /></CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
