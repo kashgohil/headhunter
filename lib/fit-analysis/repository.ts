@@ -5,7 +5,7 @@ import { connection } from "next/server";
 
 import { getCareerProfile } from "@/lib/career-profile/repository";
 import { db } from "@/lib/db";
-import { auditEvents, fitAnalyses } from "@/lib/db/schema";
+import { auditEvents, fitAnalyses, contacts, contactOpportunities } from "@/lib/db/schema";
 import { analyzeFit } from "@/lib/fit-analysis/analyzer";
 import type { FitAnalysisResult, FitDimension, FitGap, FitWeights, Recommendation } from "@/lib/fit-analysis/types";
 import type { FitOverrideInput } from "@/lib/fit-analysis/validation";
@@ -51,14 +51,15 @@ export async function listLatestFitAnalyses(): Promise<Map<string, FitAnalysis>>
 }
 
 export async function runFitAnalysis(jobId: string, weights?: FitWeights): Promise<FitAnalysis> {
-  const [job, strategy, profile] = await Promise.all([
+  const [job, strategy, profile, referrals] = await Promise.all([
     getJob(jobId),
     getCurrentSearchStrategy(),
     getCareerProfile(),
+    db.select({ name: contacts.name, status: contactOpportunities.referralStatus }).from(contactOpportunities).innerJoin(contacts, eq(contactOpportunities.contactId, contacts.id)).where(eq(contactOpportunities.jobId, jobId)),
   ]);
   if (!job) throw new Error("Job not found.");
 
-  const result = analyzeFit({ job, strategy, profile, weights });
+  const result = analyzeFit({ job, strategy, profile, weights, referrals });
   const id = crypto.randomUUID();
   const createdAt = new Date();
 

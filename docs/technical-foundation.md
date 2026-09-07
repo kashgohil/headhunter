@@ -122,3 +122,33 @@ Ranking puts overdue work first, followed by work due within 24 hours, within se
 Dismissal and 24-hour snooze preferences persist in SQLite and can be restored. Keys include the source and relevant action/date, so changing a next action or rescheduling an interview creates a fresh reminder. Completed tasks, cancelled/completed rounds, and terminal applications are excluded from active work.
 
 The all-time funnel counts distinct applications with recorded milestone events, mapping custom stages to their standard category. Submission snapshots also establish Applied. Repeated transitions count once; skipped milestones are not inferred, and missing current-stage history produces a data check. Each count expands to its underlying applications. Recent stage changes and captures use a trailing seven-day window. No improvement trend or conversion claim is inferred from these counts.
+
+## Data portability and audit history (ISSUE-252, MVP scope)
+
+`/settings/data` exports all application tables as a versioned JSON backup, including original descriptions, submitted snapshots, evidence, contacts, interview notes, reminders, and audit history. Referenced external attachments are not bundled. Downloads are readable private data and use `private, no-store` responses; the UI explains their sensitivity.
+
+Restore validates the format, schema fingerprint, checksum, columns, and scalar types before accepting a backup. The user previews table counts and types `REPLACE` before replacement. A write-locked transaction saves a recovery copy with owner-only file permissions, replaces records, verifies foreign keys, and records restoration. Failed restores roll back. Recovery copies are downloadable from the same settings screen. Backups currently require the same schema version; this is not a cross-version migration system. The route rejects cross-origin requests and bodies over 50 MB. Existing local-only access restrictions still apply.
+
+The paginated audit view combines audit records with recorded application-stage events and supports filtering by stream. Rich global search, configurable notification delivery, quiet hours, and integrations remain the later scope of ISSUE-252.
+
+## Cohort funnel (ISSUE-250, basic scope)
+
+`/analytics` shows 30-day, 90-day, and all-time application cohorts. Cohort membership uses the earliest recorded Applied event or submission, including explicit waivers. Each milestone shows its count, cohort denominator, percentage, and linked applications. Events before the first application or in the future are excluded; repeated transitions count once and custom stages map to their standard categories. Downstream milestones are not inferred. Zero denominators show an undefined rate; small samples and immature outcomes carry explicit caveats. Segmentation and controlled experiments remain Phase 3 work.
+
+## Contacts and interview workflows (ISSUE-247/248)
+
+- Contacts retain company, relationship context/strength, profile details, opportunity links, referral status, and manual interaction history.
+- Opportunity-specific private drafts support outreach, referrals, follow-ups, and thank-you notes. Editable starter templates expose placeholders, and verified writing-voice guidance is shown when available. There is no sending integration.
+- Promised follow-up dates appear in the command center with dismiss/snooze controls. Closed opportunities and declined referrals suppress these reminders. Recent outbound interactions trigger over-contacting warnings.
+- Recorded introductions inform new fit-analysis versions; pending requests alone do not establish referral access. Existing analysis versions remain unchanged.
+- Interview rounds support scheduling, completion/cancellation, interviewer roles, objectives, commitments, editable study plans, and questions to ask. Explicit UTC inputs avoid browser/server time-zone ambiguity.
+- Briefings separate role records, sourced company research, user notes, and inferences. Suggested practice questions and study guides are deterministic aids, not predictions of an employer’s questions.
+- Question matching only uses verified, usable stories and achievements; prohibited or unverified supporting evidence is excluded. Missing matches are visible.
+- Mock sessions store private answer notes/transcripts, self-ratings, reflections, and practice steps. Feedback is rule-based guidance based on those self-ratings, not an automated assessment of the transcript.
+- Debriefs store actual questions, lessons, a private thank-you draft, and a next action. Saving completes a past round and updates the next action of an active opportunity without reopening a terminal one. Practice/debrief content never writes to the career-evidence tables.
+
+## Application and pipeline acceptance review (ISSUE-245/246)
+
+The application workspace maintains job-specific copies of verified answers, a pre-submission checklist, and immutable job/document/answer snapshots. The data-access boundary now rejects copying unverified or prohibited canonical answers even if a caller bypasses the visible library filter. Applied transitions require snapshots or an explicit waiver and active transitions require a next action or deliberate wait. The pipeline’s hidden select controls are positioned within their containers so board and table views scroll internally on mobile.
+
+Verification includes pure domain tests, Node-based SQLite restore/rollback tests against the complete migration history, and browser checks on an isolated database. SQLite native tests use Node because the installed better-sqlite3 addon crashes under the current Bun runtime; `bun run test` runs both suites.

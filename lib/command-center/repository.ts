@@ -4,19 +4,22 @@ import { desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { commandCenterAlerts, searchStrategyVersions } from "@/lib/db/schema";
 import { getPipelineOverview } from "@/lib/applications/pipeline";
-import { buildOverview, partitionAlerts } from "@/lib/command-center/overview";
+import { buildOverview, isAlertOverdue, partitionAlerts } from "@/lib/command-center/overview";
+import { getContactFollowups } from "@/lib/contacts/repository";
+import { shouldRemindContact } from "@/lib/contacts/validation";
 
 export async function getCommandCenter() {
   const pipeline = await getPipelineOverview();
   const now = new Date();
   const overview = buildOverview(pipeline, now);
-  const [preferences, strategy] = await Promise.all([
+  const [preferences, strategy, followups] = await Promise.all([
     db.select().from(commandCenterAlerts),
     db
       .select({ weeklyHours: searchStrategyVersions.weeklyHours })
       .from(searchStrategyVersions)
       .orderBy(desc(searchStrategyVersions.version))
       .get(),
+    getContactFollowups(),
   ]);
   if (!strategy)
     overview.alerts.push({
@@ -42,6 +45,12 @@ export async function getCommandCenter() {
       dueAt: null,
       rank: 0,
     });
+  for (const followup of followups.filter(shouldRemindContact)) {
+    const dueAt = followup.followUpAt!.toISOString();
+    const urgency = isAlertOverdue({ kind: "contact", dueAt }, now) ? 1000 : followup.followUpAt!.getTime() <= now.getTime() + 86_400_000 ? 800 : followup.followUpAt!.getTime() <= now.getTime() + 7 * 86_400_000 ? 400 : 0;
+    overview.alerts.push({ key: `contact:${followup.id}:${dueAt}:${followup.promisedAction}`, kind: "contact", title: `Follow up with ${followup.name}`, source: `${followup.company} · ${followup.title}`, href: `/contacts/${followup.contactId}#opportunity-${followup.jobId}`, reason: followup.promisedAction, dueAt, rank: urgency + 30 });
+  }
+  overview.alerts.sort((a, b) => b.rank - a.rank || (a.dueAt ?? "9999").localeCompare(b.dueAt ?? "9999") || a.key.localeCompare(b.key));
   return {
     ...overview,
     ...partitionAlerts(overview.alerts, preferences, now),

@@ -14,6 +14,7 @@ import {
   opportunities,
   outreachDrafts,
   pipelineStages,
+  contactOpportunities,
 } from "@/lib/db/schema";
 import { pipelineStageDefinitions } from "@/lib/applications/types";
 import type { z } from "zod";
@@ -85,7 +86,7 @@ export async function createInterview(jobId: string, input: InterviewInput) {
 
 export async function getPipelineOverview() {
   await connection();
-  const [stages, rows, tasks, submissions, artifacts, outreach, events, interviews] = await Promise.all([
+  const [stages, rows, tasks, submissions, artifacts, outreach, events, interviews, linkedContacts] = await Promise.all([
     listPipelineStages(),
     db.select({
       jobId: jobs.id,
@@ -114,6 +115,7 @@ export async function getPipelineOverview() {
     db.select().from(outreachDrafts),
     db.select().from(applicationEvents).orderBy(desc(applicationEvents.occurredAt)),
     db.select().from(applicationInterviews).orderBy(asc(applicationInterviews.scheduledAt)),
+    db.select({ jobId: contactOpportunities.jobId, contactId: contactOpportunities.contactId }).from(contactOpportunities),
   ]);
 
   const stageMap = new Map(stages.map((stage) => [stage.key, stage]));
@@ -147,7 +149,7 @@ export async function getPipelineOverview() {
       openTaskCount: applicationTasks.filter((item) => !item.completedAt).length,
       taskCount: applicationTasks.length,
       materialCount: (artifactsByJob.get(row.jobId) ?? []).length,
-      contactCount: contactNames.size,
+      contactCount: new Set(linkedContacts.filter((item) => item.jobId === row.jobId).map((item) => item.contactId)).size || contactNames.size,
       events: applicationEvents,
       tasks: applicationTasks,
       interviews: applicationInterviews,

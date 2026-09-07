@@ -10,7 +10,7 @@ export default async function WorkspaceLayout({ children }: { children: React.Re
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
       <WorkspaceSidebar />
-      <SidebarInset>
+      <SidebarInset className="min-w-0">
         <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur-sm md:hidden">
           <SidebarTrigger />
           <span className="text-sm font-semibold tracking-tight">Headhunter</span>

@@ -40,6 +40,13 @@ function profile(withEvidence = true) {
 }
 
 describe("explainable fit analysis", () => {
+  test("only recorded introductions establish referral access", () => {
+    const input = { job: job(), strategy: strategy(), profile: profile(), now };
+    expect(analyzeFit({ ...input, referrals: [{ name: "Sam", status: "requested" }] }).dimensions.referral_access.score).toBeNull();
+    const introduced = analyzeFit({ ...input, referrals: [{ name: "Sam", status: "introduced" }] });
+    expect(introduced.dimensions.referral_access.score).toBe(100);
+    expect(introduced.dimensions.referral_access.summary).toContain("not a likelihood");
+  });
   test("scores dimensions separately and leaves referral access unknown", () => {
     const result = analyzeFit({ job: job(), strategy: strategy(), profile: profile(), now });
     expect(result.score).toBeGreaterThanOrEqual(75);

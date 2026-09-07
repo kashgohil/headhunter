@@ -4,6 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   FileText,
+  Database,
+  ChartNoAxesCombined,
+  Users,
+  CalendarDays,
   Inbox,
   LayoutDashboard,
   Settings,
@@ -28,8 +32,12 @@ const navigation = [
   { label: "Command center", icon: LayoutDashboard, href: "/" },
   { label: "Job inbox", icon: Inbox, href: "/jobs" },
   { label: "Pipeline", icon: SlidersHorizontal, href: "/pipeline" },
+  { label: "Funnel", icon: ChartNoAxesCombined, href: "/analytics" },
+  { label: "Contacts", icon: Users, href: "/contacts" },
+  { label: "Interviews", icon: CalendarDays, href: "/interviews" },
   { label: "Resume studio", icon: FileText, href: "/resumes" },
   { label: "Career profile", icon: UserRound, href: "/career-profile" },
+  { label: "Data & history", icon: Database, href: "/settings/data" },
 ];
 
 function BrandMark() {
@@ -92,7 +100,7 @@ export function WorkspaceSidebar() {
       <SidebarFooter className="border-t border-sidebar-border">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={pathname.startsWith("/settings")} tooltip="Search strategy">
+            <SidebarMenuButton asChild isActive={pathname.startsWith("/settings/search-strategy")} tooltip="Search strategy">
               <Link href="/settings/search-strategy">
                 <Settings />
                 <span className="group-data-[collapsible=icon]:hidden">Search strategy</span>

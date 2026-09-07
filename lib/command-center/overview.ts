@@ -12,7 +12,8 @@ export type Alert = {
     | "stalled"
     | "quality"
     | "opportunity"
-    | "setup";
+    | "setup"
+    | "contact";
   title: string;
   source: string;
   href: string;
@@ -91,6 +92,7 @@ export function buildOverview(pipeline: Pipeline, now: Date) {
       reason: string,
       due: Date | null,
       base: number,
+      target = href,
     ) => {
       const urgency = due
         ? isAlertOverdue({ kind, dueAt: due.toISOString() }, now)
@@ -106,7 +108,7 @@ export function buildOverview(pipeline: Pipeline, now: Date) {
         kind,
         title,
         source,
-        href,
+        href: target,
         reason,
         dueAt: due?.toISOString() ?? null,
         rank: base + urgency + value,
@@ -141,6 +143,7 @@ export function buildOverview(pipeline: Pipeline, now: Date) {
           : "Review the round details and prepare for the conversation.",
         interview.scheduledAt,
         60,
+        `/interviews/${interview.id}`,
       );
     }
     if (application.nextAction) {

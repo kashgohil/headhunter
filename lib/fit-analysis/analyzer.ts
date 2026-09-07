@@ -17,6 +17,7 @@ type AnalyzeInput = {
   profile: CareerProfile;
   weights?: FitWeights;
   now?: Date;
+  referrals?: Array<{ name: string; status: string }>;
 };
 
 const stopWords = new Set(["a", "an", "and", "are", "as", "at", "be", "for", "from", "in", "of", "on", "or", "the", "to", "with", "years", "year", "experience", "strong"]);
@@ -70,7 +71,7 @@ function labelCount(count: number, noun: string) {
   return `${count} ${noun}${count === 1 ? "" : "s"}`;
 }
 
-export function analyzeFit({ job, strategy, profile, weights = defaultFitWeights, now = new Date() }: AnalyzeInput): FitAnalysisResult {
+export function analyzeFit({ job, strategy, profile, weights = defaultFitWeights, now = new Date(), referrals = [] }: AnalyzeInput): FitAnalysisResult {
   const evidence = [
     ...profile.experiences.filter((item) => usable(item.verificationState)).map((item) => ({ id: item.id, text: [item.title, item.summary, ...item.responsibilities, ...item.technologies].filter(Boolean).join(" ") })),
     ...profile.achievements.filter((item) => usable(item.verificationState)).map((item) => ({ id: item.id, text: [item.problem, item.action, item.result, item.measurableOutcome, ...item.tools, ...item.roleFamilies].filter(Boolean).join(" ") })),
@@ -193,7 +194,7 @@ export function analyzeFit({ job, strategy, profile, weights = defaultFitWeights
     location_comp: dimension(locationCompScore, strategy ? "Compared with saved location, work arrangement, and compensation constraints." : "Save a search strategy to score practical constraints.", locationSignals),
     preferences: dimension(preferenceScore, strategy ? "Compared with target titles and saved preferences." : "Save a search strategy to score personal preferences.", preferenceSignals),
     freshness: dimension(freshnessScore, job.postedAt ? `Posted ${ageDays} days ago.` : `Captured ${ageDays} days ago; original posting date is unknown.`),
-    referral_access: dimension(null, "Unknown until contacts and network data are available in Phase 2."),
+    referral_access: dimension(referrals.some((referral) => referral.status === "introduced") ? 100 : null, referrals.some((referral) => referral.status === "introduced") ? "An introduction is recorded for this opportunity. This indicates access, not a likelihood of an offer." : "Referral access remains unknown until an introduction is recorded; a contact or pending request does not establish access.", referrals.map((referral) => `${referral.name}: ${referral.status.replaceAll("_", " ")}`)),
     prep_effort: dimension(prepEffortScore, prepEffortScore >= 75 ? "Current evidence should support a focused application with light preparation." : "Several requirements need evidence or clearer positioning."),
   } satisfies FitAnalysisResult["dimensions"];
 

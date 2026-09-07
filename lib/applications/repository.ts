@@ -147,6 +147,7 @@ export async function setTaskCompleted(jobId: string, taskId: string, completed:
 export async function createApplicationAnswer(jobId: string, input: AnswerInput) {
   const canonical = input.canonicalAnswerId ? await db.select().from(careerAnswers).where(eq(careerAnswers.id, input.canonicalAnswerId)).get() : null;
   if (input.canonicalAnswerId && !canonical) throw new Error("Library answer not found.");
+  if (canonical && canonical.verificationState !== "verified") throw new Error("Only verified library answers can be copied into an application.");
   const question = canonical?.question ?? input.question;
   const answer = input.answer || canonical?.answer || "";
   if (!question || !answer) throw new Error("Add both a question and answer.");

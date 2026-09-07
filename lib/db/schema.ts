@@ -157,6 +157,71 @@ export const applicationInterviews = sqliteTable("application_interviews", {
   updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
 });
 
+export const contacts = sqliteTable("contacts", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  company: text("company").notNull().default(""),
+  email: text("email"),
+  profileUrl: text("profile_url"),
+  relationship: text("relationship", { enum: ["new", "acquaintance", "warm", "close"] }).notNull().default("new"),
+  context: text("context").notNull().default(""),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const interviewPlans = sqliteTable("interview_plans", {
+  interviewId: text("interview_id").primaryKey().references(() => applicationInterviews.id, { onDelete: "cascade" }),
+  kind: text("kind", { enum: ["recruiter", "behavioral", "technical", "hiring_manager", "panel", "other"] }).notNull().default("other"),
+  interviewers: text("interviewers").notNull().default(""),
+  objectives: text("objectives").notNull().default(""),
+  commitments: text("commitments").notNull().default(""),
+  studyPlan: text("study_plan").notNull().default(""),
+  questionsForInterviewer: text("questions_for_interviewer").notNull().default(""),
+  actualQuestions: text("actual_questions").notNull().default(""),
+  wentWell: text("went_well").notNull().default(""),
+  answerGaps: text("answer_gaps").notNull().default(""),
+  thankYouDraft: text("thank_you_draft").notNull().default(""),
+  nextAction: text("next_action").notNull().default(""),
+  debriefedAt: integer("debriefed_at", { mode: "timestamp_ms" }),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const interviewPractice = sqliteTable("interview_practice", {
+  id: text("id").primaryKey(),
+  interviewId: text("interview_id").notNull().references(() => applicationInterviews.id, { onDelete: "cascade" }),
+  prompt: text("prompt").notNull(),
+  response: text("response").notNull(),
+  clarity: integer("clarity").notNull(),
+  relevance: integer("relevance").notNull(),
+  evidence: integer("evidence").notNull(),
+  feedback: text("feedback").notNull(),
+  nextPractice: text("next_practice").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const contactOpportunities = sqliteTable("contact_opportunities", {
+  id: text("id").primaryKey(),
+  contactId: text("contact_id").notNull().references(() => contacts.id, { onDelete: "cascade" }),
+  jobId: text("job_id").notNull().references(() => jobs.id, { onDelete: "cascade" }),
+  referralStatus: text("referral_status", { enum: ["not_requested", "requested", "introduced", "declined"] }).notNull().default("not_requested"),
+  followUpAt: integer("follow_up_at", { mode: "timestamp_ms" }),
+  promisedAction: text("promised_action").notNull().default(""),
+  draftKind: text("draft_kind", { enum: ["outreach", "referral", "follow_up", "thank_you"] }).notNull().default("outreach"),
+  draft: text("draft").notNull().default(""),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+}, (table) => [uniqueIndex("contact_opportunity_unique").on(table.contactId, table.jobId)]);
+
+export const contactInteractions = sqliteTable("contact_interactions", {
+  id: text("id").primaryKey(),
+  contactId: text("contact_id").notNull().references(() => contacts.id, { onDelete: "cascade" }),
+  jobId: text("job_id").references(() => jobs.id, { onDelete: "set null" }),
+  direction: text("direction", { enum: ["inbound", "outbound", "note"] }).notNull(),
+  channel: text("channel", { enum: ["email", "message", "call", "meeting", "other"] }).notNull(),
+  summary: text("summary").notNull(),
+  occurredAt: integer("occurred_at", { mode: "timestamp_ms" }).notNull(),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+});
+
 const companyResearchTopics = ["product", "team", "culture", "compensation", "interview_process", "contact", "open_question"] as const;
 const researchProvenance = ["sourced_fact", "user_note", "inference"] as const;
 const researchSourceStates = ["current", "stale", "inaccessible"] as const;
@@ -280,6 +345,7 @@ export const resumeSectionLocks = sqliteTable("resume_section_locks", {
 export const auditEvents = sqliteTable("audit_events", {
   id: text("id").primaryKey(),
   action: text("action", { enum: [
+    "workspace.restored",
     "job.captured",
     "job.metadata_updated",
     "search_strategy.saved",
@@ -311,6 +377,7 @@ export const auditEvents = sqliteTable("audit_events", {
     "application.submitted",
   ] }).notNull(),
   entityType: text("entity_type", { enum: [
+    "workspace",
     "job",
     "search_strategy",
     "career_experience",

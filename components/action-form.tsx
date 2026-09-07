@@ -1,0 +1,112 @@
+"use client";
+import { useActionState, useId, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+export type FormState = { message?: string; success?: boolean };
+export function ActionForm({
+  action,
+  children,
+  label = "Save",
+  className = "space-y-4",
+}: {
+  action: (state: FormState, data: FormData) => Promise<FormState>;
+  children: React.ReactNode;
+  label?: string;
+  className?: string;
+}) {
+  const [state, submit, pending] = useActionState(action, {});
+  return (
+    <form action={submit} className={className}>
+      <fieldset disabled={pending} className="space-y-4">
+        {children}
+        <Button disabled={pending}>{pending ? "Saving…" : label}</Button>
+      </fieldset>
+      {state.message ? (
+        <p
+          role={state.success ? "status" : "alert"}
+          className={
+            state.success
+              ? "text-sm text-muted-foreground"
+              : "text-sm text-destructive"
+          }
+        >
+          {state.message}
+        </p>
+      ) : null}
+    </form>
+  );
+}
+export function FormSelect({
+  name,
+  label,
+  options,
+  defaultValue,
+}: {
+  name: string;
+  label: string;
+  options: Array<{ value: string; label: string }>;
+  defaultValue?: string;
+}) {
+  const id = useId();
+  return (
+    <div>
+      <label htmlFor={id} className="text-sm font-medium">
+        {label}
+      </label>
+      <Select name={name} defaultValue={defaultValue ?? options[0]?.value}>
+        <SelectTrigger id={id} className="mt-2">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
+export function DateTimeField({
+  name,
+  label,
+  defaultValue,
+}: {
+  name: string;
+  label: string;
+  defaultValue?: string;
+}) {
+  const id = useId();
+  const [value, setValue] = useState(defaultValue ?? "");
+  // An explicit UTC field avoids interpreting browser-local input in the server's time zone.
+  return (
+    <div>
+      <label htmlFor={id} className="text-sm font-medium">
+        {label} (UTC)
+      </label>
+      <Input
+        id={id}
+        type="datetime-local"
+        required
+        value={value.slice(0, 16)}
+        onChange={(event) => setValue(event.target.value)}
+        className="mt-2"
+      />
+      <input
+        type="hidden"
+        name={name}
+        value={value ? `${value.slice(0, 16)}:00.000Z` : ""}
+      />
+    </div>
+  );
+}

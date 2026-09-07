@@ -17,7 +17,7 @@ const resolvedPath = path.join(
 
 fs.mkdirSync(dataDirectory, { recursive: true });
 
-const sqlite = new Database(resolvedPath);
+export const sqlite = new Database(resolvedPath);
 sqlite.pragma("journal_mode = WAL");
 sqlite.pragma("foreign_keys = ON");
 

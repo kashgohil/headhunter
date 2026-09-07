@@ -19,7 +19,7 @@ export function CustomStageControl() {
 
 export function PipelineMetadataControls({ jobId, priority, interest }: { jobId: string; priority: "low" | "normal" | "high"; interest: number }) {
   const formRef = useRef<HTMLFormElement>(null);
-  return <form ref={formRef} action={updatePipelineMetadataAction.bind(null, jobId)} className="flex items-center gap-2">
+  return <form ref={formRef} action={updatePipelineMetadataAction.bind(null, jobId)} className="relative flex items-center gap-2">
     <Select name="priority" defaultValue={priority} onValueChange={() => requestAnimationFrame(() => formRef.current?.requestSubmit())}><SelectTrigger className="h-8 w-24 bg-background" aria-label="Priority"><SelectValue/></SelectTrigger><SelectContent><SelectItem value="low">Low</SelectItem><SelectItem value="normal">Normal</SelectItem><SelectItem value="high">High</SelectItem></SelectContent></Select>
     <Select name="interest" defaultValue={String(interest)} onValueChange={() => requestAnimationFrame(() => formRef.current?.requestSubmit())}><SelectTrigger className="h-8 w-24 bg-background" aria-label="Interest"><SelectValue/></SelectTrigger><SelectContent>{[1,2,3,4,5].map((value) => <SelectItem key={value} value={String(value)}>Interest {value}</SelectItem>)}</SelectContent></Select>
   </form>;

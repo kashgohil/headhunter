@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useRef } from "react";
+import { useActionState, useRef, useState } from "react";
 import {
   Archive,
   CalendarClock,
@@ -74,15 +74,23 @@ function SubmitButton({ pending, children }: { pending: boolean; children: React
 
 function StageControl({ jobId, stage, stages }: { jobId: string; stage: string; stages: WorkspaceData["stages"] }) {
   const [state, action, pending] = useActionState(updateStageAction.bind(null, jobId), initialState);
+  const [selectedStage, setSelectedStage] = useState(stage);
+  const [waiver, setWaiver] = useState("");
+  const [outcomeReason, setOutcomeReason] = useState("");
   const current = stages.find((item) => item.key === stage);
   return (
     <Popover>
       <PopoverTrigger asChild><Button variant="outline" className="min-w-44 justify-between bg-background">{current?.label ?? stage}<span className="text-muted-foreground">Change</span></Button></PopoverTrigger>
       <PopoverContent align="end" className="w-80">
-        <form action={action} className="space-y-4">
-          <div><label className="text-sm font-medium">Move to</label><Select name="stage" defaultValue={stage}><SelectTrigger className="mt-2"><SelectValue /></SelectTrigger><SelectContent>{stages.map((item) => <SelectItem key={item.key} value={item.key}>{item.label}</SelectItem>)}</SelectContent></Select></div>
-          <div><label htmlFor="stage-waiver" className="text-sm font-medium">Applied waiver</label><Textarea id="stage-waiver" name="submissionWaiverReason" className="mt-2 min-h-20" placeholder="Required only when moving to Applied without a submission snapshot" /></div>
-          <div><label htmlFor="outcome-reason" className="text-sm font-medium">Outcome reason</label><Textarea id="outcome-reason" name="outcomeReason" className="mt-2 min-h-20" placeholder="Optional context for a terminal stage" /></div>
+        <form action={action} className="space-y-4" onResetCapture={(event) => {
+          // Radix listens to native resets even for controlled selects. Preserve the
+          // attempted transition so a validation retry cannot change its target.
+          event.preventDefault();
+          event.stopPropagation();
+        }}>
+          <div><label htmlFor="target-stage" className="text-sm font-medium">Move to</label><Select name="stage" value={selectedStage} onValueChange={setSelectedStage}><SelectTrigger id="target-stage" className="mt-2"><SelectValue /></SelectTrigger><SelectContent>{stages.map((item) => <SelectItem key={item.key} value={item.key}>{item.label}</SelectItem>)}</SelectContent></Select></div>
+          <div><label htmlFor="stage-waiver" className="text-sm font-medium">Applied waiver</label><Textarea id="stage-waiver" name="submissionWaiverReason" value={waiver} onChange={(event) => setWaiver(event.target.value)} className="mt-2 min-h-20" placeholder="Required only when moving to Applied without a submission snapshot" /></div>
+          <div><label htmlFor="outcome-reason" className="text-sm font-medium">Outcome reason</label><Textarea id="outcome-reason" name="outcomeReason" value={outcomeReason} onChange={(event) => setOutcomeReason(event.target.value)} className="mt-2 min-h-20" placeholder="Optional context for a terminal stage" /></div>
           <Feedback state={state}/><SubmitButton pending={pending}>Update stage</SubmitButton>
         </form>
       </PopoverContent>
@@ -125,7 +133,7 @@ function PlanTab({ jobId, data }: { jobId: string; data: WorkspaceData }) {
         </form><Feedback state={taskState} />
       </CardContent></Card>
       <Card className="lg:col-span-2"><CardHeader><div className="flex items-center justify-between gap-4"><div><CardTitle>Interview rounds</CardTitle><p className="mt-2 text-sm leading-6 text-muted-foreground">Scheduled rounds appear in the pipeline’s upcoming view.</p></div><span className="font-mono text-xs text-muted-foreground">{data.interviews.length}</span></div></CardHeader><CardContent className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="space-y-2">{data.interviews.length ? data.interviews.map((item) => <div key={item.id} className="flex items-start justify-between gap-4 rounded-md border bg-background p-4"><div><p className="text-sm font-semibold">{item.label}</p>{item.notes ? <p className="mt-1 text-xs leading-5 text-muted-foreground">{item.notes}</p> : null}</div><time className="shrink-0 text-xs text-muted-foreground">{dateTimeFormatter.format(new Date(item.scheduledAt))}</time></div>) : <div className="grid min-h-32 place-items-center rounded-md border border-dashed text-sm text-muted-foreground">No interview rounds scheduled.</div>}</div>
+        <div className="space-y-2">{data.interviews.length ? data.interviews.map((item) => <div key={item.id} className="flex items-start justify-between gap-4 rounded-md border bg-background p-4"><div><Link href={`/interviews/${item.id}`} className="text-sm font-semibold hover:text-primary">{item.label}</Link><p className="mt-1 text-xs text-muted-foreground">{item.status} · Open preparation & debrief</p>{item.notes ? <p className="mt-1 text-xs leading-5 text-muted-foreground">{item.notes}</p> : null}</div><time className="shrink-0 text-xs text-muted-foreground">{dateTimeFormatter.format(new Date(item.scheduledAt))}</time></div>) : <div className="grid min-h-32 place-items-center rounded-md border border-dashed text-sm text-muted-foreground">No interview rounds scheduled.</div>}</div>
         <form action={interviewAction} className="space-y-4"><div><label htmlFor="interview-label" className="text-sm font-medium">Round</label><Input id="interview-label" name="label" className="mt-2" placeholder="Hiring manager conversation" /></div><div><label htmlFor="interview-at" className="text-sm font-medium">Scheduled at</label><Input id="interview-at" name="scheduledAt" type="datetime-local" className="mt-2" /></div><div><label htmlFor="interview-notes" className="text-sm font-medium">Notes</label><Textarea id="interview-notes" name="notes" className="mt-2 min-h-20" placeholder="Format, attendees, call link…" /></div><Feedback state={interviewState}/><SubmitButton pending={interviewPending}><Plus/> Add round</SubmitButton></form>
       </CardContent></Card>
     </div>

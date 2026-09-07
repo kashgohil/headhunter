@@ -14,6 +14,7 @@ import { getLatestFitAnalysis } from "@/lib/fit-analysis/repository";
 import { getCareerProfile } from "@/lib/career-profile/repository";
 import { getOpportunityResearch } from "@/lib/research/repository";
 import { getApplicationWorkspace } from "@/lib/applications/repository";
+import { getOpportunityContacts } from "@/lib/contacts/repository";
 
 const dateFormatter = new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" });
 
@@ -36,12 +37,13 @@ function inputDate(value: Date | null) {
 
 export default async function JobDetailPage(props: PageProps<"/jobs/[id]">) {
   const { id } = await props.params;
-  const [job, fitAnalysis, profile, research, application] = await Promise.all([
+  const [job, fitAnalysis, profile, research, application, contacts] = await Promise.all([
     getJob(id),
     getLatestFitAnalysis(id),
     getCareerProfile(),
     getOpportunityResearch(id),
     getApplicationWorkspace(id),
+    getOpportunityContacts(id),
   ]);
 
   if (!job) notFound();
@@ -91,6 +93,8 @@ export default async function JobDetailPage(props: PageProps<"/jobs/[id]">) {
           </div>
         </div>
       ) : null}
+
+      <section className="mt-8 rounded-lg border bg-card p-5"><div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-semibold">Contacts & referrals</h2><Link href="/contacts" className="text-sm text-primary">Manage contacts</Link></div>{contacts.length ? <ul className="mt-4 space-y-2">{contacts.map((contact) => <li key={contact.id}><Link href={`/contacts/${contact.id}#opportunity-${job.id}`} className="text-sm font-medium hover:text-primary">{contact.name}</Link><span className="ml-3 text-xs text-muted-foreground">{contact.relationship} · {contact.referralStatus.replaceAll("_", " ")}</span></li>)}</ul> : <p className="mt-3 text-sm text-muted-foreground">No linked contacts yet. Link a contact to this role to track introductions and promised follow-ups.</p>}</section>
 
       {application.opportunity ? <ApplicationWorkspace jobId={job.id} data={{
         opportunity: {
