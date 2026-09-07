@@ -69,12 +69,14 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), sans-serif;
-}
+@layer base {
+  * {
+    border-color: var(--border);
+  }
 
-* {
-  border-color: var(--border);
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-geist-sans), sans-serif;
+  }
 }
