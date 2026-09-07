@@ -42,3 +42,6 @@ next-env.d.ts
 
 # design canvas working files (source-of-truth is the published Claude Design artifact)
 /design
+
+# local application data
+/.data/
