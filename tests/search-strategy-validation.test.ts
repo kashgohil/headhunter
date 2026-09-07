@@ -6,16 +6,24 @@ const validStrategy = {
   primaryTitle: "Senior Product Designer",
   adjacentTitles: "Staff Designer, Design Lead, Staff Designer",
   seniorityLevels: "Senior, Staff",
+  preferredIndustries: "Developer tools, Fintech, Developer tools",
+  excludedIndustries: "Gambling",
+  companyStages: "Series B, Public",
+  companySizes: "51–200, 201–500",
   workArrangements: "Remote, Hybrid",
   locations: "India, United Kingdom",
+  relocationPreference: "Open to relocating for the right role",
+  timeZoneConstraints: "At least four hours of overlap with IST",
   workAuthorization: "Authorized to work in India",
   sponsorshipRequired: "true",
   minimumCompensation: "150000",
   targetCompensation: "175000",
   currency: "usd",
+  compensationFlexible: "true",
   hardBlockers: "No sponsorship offered\nOn-site five days a week",
   softPreferences: "Small product team\nDeveloper tools",
   weeklyHours: "6",
+  searchPace: "balanced",
 };
 
 describe("search strategy validation", () => {
@@ -23,9 +31,12 @@ describe("search strategy validation", () => {
     const strategy = searchStrategySchema.parse(validStrategy);
 
     expect(strategy.adjacentTitles).toEqual(["Staff Designer", "Design Lead"]);
+    expect(strategy.preferredIndustries).toEqual(["Developer tools", "Fintech"]);
     expect(strategy.currency).toBe("USD");
     expect(strategy.sponsorshipRequired).toBe(true);
+    expect(strategy.compensationFlexible).toBe(true);
     expect(strategy.weeklyHours).toBe(6);
+    expect(strategy.searchPace).toBe("balanced");
   });
 
   test("keeps hard blockers separate from soft preferences", () => {
@@ -54,5 +65,19 @@ describe("search strategy validation", () => {
     const result = searchStrategySchema.safeParse({ ...validStrategy, weeklyHours: "" });
 
     expect(result.success).toBe(false);
+  });
+
+  test("requires a relocation preference and valid search approach", () => {
+    const result = searchStrategySchema.safeParse({
+      ...validStrategy,
+      relocationPreference: "",
+      searchPace: "fast",
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.flatten().fieldErrors.relocationPreference).toBeDefined();
+      expect(result.error.flatten().fieldErrors.searchPace).toBeDefined();
+    }
   });
 });
