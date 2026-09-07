@@ -15,7 +15,6 @@ export default async function JobsPage() {
     <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 sm:py-12 lg:px-12 lg:py-14">
       <header className="flex flex-col gap-6 border-b border-border pb-8 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <div className="mb-3 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground"><span className="size-1.5 rounded-full bg-signal" />Phase 0 · Capture</div>
           <h1 className="text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">Job inbox</h1>
           <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">A quiet place for roles worth a closer look. Capture the source first; qualify it later.</p>
         </div>

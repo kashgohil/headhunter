@@ -12,6 +12,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 - Style interfaces with Tailwind CSS utilities. Do not add component-specific custom CSS classes.
 - Build interface primitives with shadcn/ui and adapt them to the Headhunter theme.
-- Use Inter through `next/font` for application typography.
+- Use Geist Sans and Geist Mono through `next/font` for application typography.
 - Use Motion for purposeful React animation. Keep frequent interactions crisp and avoid decorative motion that slows work down.
 - Apply Emil Kowalski's design-engineering principles while building UI and run the animation-review skill before completing motion work.
+- Avoid decorative eyebrow labels and ornamental status dots. Use compact labels or dots only when they communicate real hierarchy or state.

@@ -10,7 +10,7 @@ This document translates the Phase 0 requirements in the [product plan](./produc
 - **Runtime:** Next.js App Router on the Node.js runtime.
 - **Storage:** local-first SQLite with Drizzle migrations. Database access stays behind a server-only data-access layer so a hosted database can replace it later. `DATABASE_FILE` may override the filename inside the private `.data` directory.
 - **Access:** single-user local development. Authentication is required before any hosted deployment and every Server Action must gain an authorization check at that boundary.
-- **UI:** Tailwind CSS utilities and theme-adapted shadcn/ui components, with Inter supplied through `next/font`.
+- **UI:** Tailwind CSS utilities and theme-adapted shadcn/ui components, with Geist Sans and Geist Mono supplied through `next/font`.
 - **Motion:** Motion is used only for purposeful state feedback. Frequent navigation remains instant and reduced-motion preferences are respected.
 - **AI:** extraction and analysis are outside the first slice. When added, providers sit behind an interface and every artifact records source versions, provenance, confidence, and approval state.
 
