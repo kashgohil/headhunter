@@ -15,4 +15,4 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Use Geist Sans and Geist Mono through `next/font` for application typography.
 - Use Motion for purposeful React animation. Keep frequent interactions crisp and avoid decorative motion that slows work down.
 - Apply Emil Kowalski's design-engineering principles while building UI and run the animation-review skill before completing motion work.
-- Avoid decorative eyebrow labels and ornamental status dots. Use compact labels or dots only when they communicate real hierarchy or state.
+- Do not use eyebrow text anywhere, including chip- or badge-shaped eyebrow substitutes above headings. Status badges remain acceptable only when they communicate a real object state in context; never use them as decoration. Avoid ornamental status dots.

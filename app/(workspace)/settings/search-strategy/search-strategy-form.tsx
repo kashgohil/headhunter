@@ -63,8 +63,8 @@ export function SearchStrategyForm({ strategy }: { strategy: SearchStrategy | nu
           Every save creates a new immutable version for future fit analysis.
         </p>
         {currentVersion ? (
-          <span className="shrink-0 rounded-full border border-border bg-card px-2.5 py-1 font-mono text-[11px] text-muted-foreground">
-            Version {currentVersion}
+          <span className="shrink-0 font-mono text-xs text-muted-foreground">
+            Current version {currentVersion}
           </span>
         ) : null}
       </div>

@@ -2,7 +2,6 @@ import Link from "next/link";
 import { ArrowLeft, LockKeyhole } from "lucide-react";
 
 import { CaptureJobForm } from "@/app/(workspace)/jobs/new/capture-job-form";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -13,7 +12,6 @@ export default function NewJobPage() {
 
       <div className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <Badge variant="signal" className="mb-4">Original source</Badge>
           <h1 className="text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">Capture a job</h1>
           <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">Add only what you know. Extraction and fit analysis come after the source is safely stored.</p>
         </div>
