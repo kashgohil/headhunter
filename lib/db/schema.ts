@@ -20,8 +20,27 @@ export const opportunities = sqliteTable("opportunities", {
 
 export const auditEvents = sqliteTable("audit_events", {
   id: text("id").primaryKey(),
-  action: text("action", { enum: ["job.captured"] }).notNull(),
-  entityType: text("entity_type", { enum: ["job"] }).notNull(),
+  action: text("action", { enum: ["job.captured", "search_strategy.saved"] }).notNull(),
+  entityType: text("entity_type", { enum: ["job", "search_strategy"] }).notNull(),
   entityId: text("entity_id").notNull(),
   occurredAt: integer("occurred_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const searchStrategyVersions = sqliteTable("search_strategy_versions", {
+  id: text("id").primaryKey(),
+  version: integer("version").notNull().unique(),
+  primaryTitle: text("primary_title").notNull(),
+  adjacentTitles: text("adjacent_titles", { mode: "json" }).$type<string[]>().notNull(),
+  seniorityLevels: text("seniority_levels", { mode: "json" }).$type<string[]>().notNull(),
+  workArrangements: text("work_arrangements", { mode: "json" }).$type<string[]>().notNull(),
+  locations: text("locations", { mode: "json" }).$type<string[]>().notNull(),
+  workAuthorization: text("work_authorization").notNull(),
+  sponsorshipRequired: integer("sponsorship_required", { mode: "boolean" }).notNull(),
+  minimumCompensation: integer("minimum_compensation").notNull(),
+  targetCompensation: integer("target_compensation").notNull(),
+  currency: text("currency").notNull(),
+  hardBlockers: text("hard_blockers", { mode: "json" }).$type<string[]>().notNull(),
+  softPreferences: text("soft_preferences", { mode: "json" }).$type<string[]>().notNull(),
+  weeklyHours: integer("weekly_hours").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
 });
