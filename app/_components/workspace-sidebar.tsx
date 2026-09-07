@@ -92,9 +92,11 @@ export function WorkspaceSidebar() {
       <SidebarFooter className="border-t border-sidebar-border">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton aria-disabled="true" tooltip="Settings">
-              <Settings />
-              <span className="group-data-[collapsible=icon]:hidden">Settings</span>
+            <SidebarMenuButton asChild isActive={pathname.startsWith("/settings")} tooltip="Search strategy">
+              <Link href="/settings/search-strategy">
+                <Settings />
+                <span className="group-data-[collapsible=icon]:hidden">Search strategy</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>

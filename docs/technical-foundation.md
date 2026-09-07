@@ -1,6 +1,6 @@
 # Headhunter Technical Foundation
 
-**Status:** Accepted for Phase 0
+**Status:** Accepted for Phase 0/1
 **Last updated:** 2026-09-07
 
 This document translates the Phase 0 requirements in the [product plan](./product-plan.md) into the first implementation boundary.
@@ -33,6 +33,24 @@ Paste a job -> validate it -> store its original text -> create an Inbox opportu
 - The detail page visibly distinguishes user-entered metadata from the preserved source.
 - Empty, validation, loading, and missing-record states are understandable.
 - The application passes lint, tests, type checking, and a production build.
+
+## Second vertical slice
+
+The next user-visible loop is:
+
+```text
+Define search strategy -> validate practical constraints -> save immutable version
+                       -> expose the active version to future fit analysis
+```
+
+### Acceptance criteria
+
+- A strategy captures target and adjacent roles, seniority, locations, work arrangements, work authorization, sponsorship needs, compensation, and weekly time budget.
+- Hard blockers remain distinct from soft preferences.
+- Flexible list input is normalized and duplicate entries are removed.
+- Compensation and time-budget constraints are validated before persistence.
+- Every save creates a new immutable strategy version and matching audit event.
+- The latest version is visibly identified and available through the server-only data-access layer.
 
 ## Security boundary
 
