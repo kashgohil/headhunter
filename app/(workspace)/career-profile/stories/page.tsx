@@ -16,11 +16,12 @@ export default async function StoriesAndAnswersPage() {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 sm:py-12 lg:px-12 lg:py-14">
+      <ProfileNavigation />
+
       <header className="mb-8 border-b border-border pb-8">
         <h1 className="text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">Stories and answers</h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">Prepare truthful stories and reusable answers once, then adapt them to each interview and application without losing their evidence.</p>
       </header>
-      <ProfileNavigation />
 
       <div className="space-y-3">
         <AddPanel title="Add interview story" description="Structure a story as situation, task, personal action, result, and reflection." open={profile.stories.length === 0}>

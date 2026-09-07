@@ -38,11 +38,12 @@ export default async function CareerLibraryPage() {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 sm:py-12 lg:px-12 lg:py-14">
+      <ProfileNavigation />
+
       <header className="mb-8 border-b border-border pb-8">
         <h1 className="text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">Projects and credentials</h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">Keep supporting career records structured, sourced, and ready to reuse when they strengthen an application.</p>
       </header>
-      <ProfileNavigation />
 
       <AddPanel title="Add a profile record" description="Capture a project, qualification, certification, award, publication, or professional link." open={profile.profileItems.length === 0}>
         <ProfileItemForm />

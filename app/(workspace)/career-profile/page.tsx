@@ -183,6 +183,8 @@ export default async function CareerProfilePage() {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 sm:py-12 lg:px-12 lg:py-14">
+      <ProfileNavigation />
+
       <header className="mb-8 grid gap-5 border-b border-border pb-8 lg:grid-cols-[1fr_auto] lg:items-end">
         <div>
           <h1 className="text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">Career profile</h1>
@@ -195,8 +197,6 @@ export default async function CareerProfilePage() {
           New entries start in review and remain editable until you lock them.
         </div>
       </header>
-
-      <ProfileNavigation />
 
       <ReadinessPanel readiness={profile.readiness} />
 
