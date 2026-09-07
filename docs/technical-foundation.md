@@ -19,18 +19,22 @@ This document translates the Phase 0 requirements in the [product plan](./produc
 The first user-visible loop is:
 
 ```text
-Paste a job -> validate it -> store its original text -> create an Inbox opportunity
-            -> record an audit event -> view it in the inbox -> open its detail
+Import, paste, or enter a job -> validate and preserve its source -> extract structured fields
+                              -> flag possible duplicates -> create an Inbox opportunity
+                              -> review and correct metadata without rewriting the source
 ```
 
 ### Acceptance criteria
 
-- A job can be captured with a title, company, and pasted description.
-- Location and source URL are optional and correctable before capture.
+- A job can be captured from a public URL, a pasted description, or minimal manual entry.
+- URL imports reject private-network destinations, limit redirects, time, content type, and response size, and retain pasted entry as the fallback.
+- Title, company, location, seniority, work arrangement, employment type, compensation, dates, qualifications, skills, and technologies are extracted when available and remain correctable.
+- Extraction confidence and source-fetch time remain visible after correction.
 - The original description is stored without trimming or rewriting.
 - Capturing a job atomically creates its Inbox opportunity and audit event.
+- Exact-URL, same-role, and high-similarity duplicate candidates are recorded and shown without automatic merging or deletion.
 - The inbox lists captured jobs newest first.
-- The detail page visibly distinguishes user-entered metadata from the preserved source.
+- The detail page visibly distinguishes editable structured metadata from the preserved source.
 - Empty, validation, loading, and missing-record states are understandable.
 - The application passes lint, tests, type checking, and a production build.
 
