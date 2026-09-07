@@ -1,7 +1,6 @@
 import { cookies } from "next/headers";
 
 import { WorkspaceSidebar } from "@/app/_components/workspace-sidebar";
-import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
 export default async function WorkspaceLayout({ children }: { children: React.ReactNode }) {
@@ -12,10 +11,9 @@ export default async function WorkspaceLayout({ children }: { children: React.Re
     <SidebarProvider defaultOpen={defaultOpen}>
       <WorkspaceSidebar />
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur-sm">
+        <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur-sm md:hidden">
           <SidebarTrigger />
-          <Separator orientation="vertical" className="h-4" />
-          <span className="text-sm font-medium">Workspace</span>
+          <span className="text-sm font-semibold tracking-tight">Headhunter</span>
         </header>
         {children}
       </SidebarInset>

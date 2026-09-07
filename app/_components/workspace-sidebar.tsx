@@ -22,6 +22,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 
 const navigation = [
@@ -46,18 +47,21 @@ export function WorkspaceSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="pt-3">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild size="lg" tooltip="Headhunter">
-              <Link href="/jobs" aria-label="Headhunter job inbox">
-                <BrandMark />
-                <span className="font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
-                  Headhunter
-                </span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <div className="flex items-center gap-1 group-data-[collapsible=icon]:flex-col">
+          <SidebarMenu className="min-w-0 flex-1 group-data-[collapsible=icon]:flex-none">
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild size="lg" tooltip="Headhunter">
+                <Link href="/jobs" aria-label="Headhunter job inbox">
+                  <BrandMark />
+                  <span className="font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
+                    Headhunter
+                  </span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+          <SidebarTrigger className="shrink-0 group-data-[collapsible=icon]:mt-1" />
+        </div>
       </SidebarHeader>
 
       <SidebarContent>
