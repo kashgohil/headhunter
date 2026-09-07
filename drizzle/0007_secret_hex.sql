@@ -1,0 +1,1 @@
+ALTER TABLE `career_experiences` ADD `responsibilities` text DEFAULT '[]' NOT NULL;

@@ -48,8 +48,37 @@ export const opportunities = sqliteTable("opportunities", {
 
 export const auditEvents = sqliteTable("audit_events", {
   id: text("id").primaryKey(),
-  action: text("action", { enum: ["job.captured", "job.metadata_updated", "search_strategy.saved"] }).notNull(),
-  entityType: text("entity_type", { enum: ["job", "search_strategy"] }).notNull(),
+  action: text("action", { enum: [
+    "job.captured",
+    "job.metadata_updated",
+    "search_strategy.saved",
+    "career_experience.created",
+    "career_experience.updated",
+    "career_achievement.created",
+    "career_achievement.updated",
+    "career_skill.created",
+    "career_skill.updated",
+    "career_profile_item.created",
+    "career_profile_item.updated",
+    "career_story.created",
+    "career_story.updated",
+    "career_answer.created",
+    "career_answer.updated",
+    "career_voice.created",
+    "career_voice.updated",
+    "career_evidence.state_changed",
+  ] }).notNull(),
+  entityType: text("entity_type", { enum: [
+    "job",
+    "search_strategy",
+    "career_experience",
+    "career_achievement",
+    "career_skill",
+    "career_profile_item",
+    "career_story",
+    "career_answer",
+    "career_voice",
+  ] }).notNull(),
   entityId: text("entity_id").notNull(),
   occurredAt: integer("occurred_at", { mode: "timestamp_ms" }).notNull(),
 });
@@ -79,4 +108,128 @@ export const searchStrategyVersions = sqliteTable("search_strategy_versions", {
   weeklyHours: integer("weekly_hours").notNull(),
   searchPace: text("search_pace", { enum: ["quality", "balanced", "volume"] }).notNull().default("balanced"),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+const evidenceSourceTypes = ["user_entered", "imported", "ai_extracted"] as const;
+const evidenceStates = ["needs_clarification", "verified", "archived", "prohibited"] as const;
+
+export const careerExperiences = sqliteTable("career_experiences", {
+  id: text("id").primaryKey(),
+  company: text("company").notNull(),
+  title: text("title").notNull(),
+  location: text("location"),
+  startDate: text("start_date").notNull(),
+  endDate: text("end_date"),
+  isCurrent: integer("is_current", { mode: "boolean" }).notNull().default(false),
+  summary: text("summary"),
+  responsibilities: text("responsibilities", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+  technologies: text("technologies", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+  sourceType: text("source_type", { enum: evidenceSourceTypes }).notNull().default("user_entered"),
+  sourceLabel: text("source_label"),
+  verificationState: text("verification_state", { enum: evidenceStates }).notNull().default("needs_clarification"),
+  locked: integer("locked", { mode: "boolean" }).notNull().default(false),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const careerAchievements = sqliteTable("career_achievements", {
+  id: text("id").primaryKey(),
+  experienceId: text("experience_id").notNull().references(() => careerExperiences.id, { onDelete: "restrict" }),
+  problem: text("problem").notNull(),
+  action: text("action").notNull(),
+  result: text("result").notNull(),
+  measurableOutcome: text("measurable_outcome"),
+  tools: text("tools", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+  roleFamilies: text("role_families", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+  sourceType: text("source_type", { enum: evidenceSourceTypes }).notNull().default("user_entered"),
+  sourceLabel: text("source_label"),
+  verificationState: text("verification_state", { enum: evidenceStates }).notNull().default("needs_clarification"),
+  locked: integer("locked", { mode: "boolean" }).notNull().default(false),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const careerSkills = sqliteTable("career_skills", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  normalizedName: text("normalized_name").notNull(),
+  context: text("context"),
+  recency: text("recency", { enum: ["current", "recent", "past"] }).notNull(),
+  proficiency: text("proficiency", { enum: ["learning", "working", "advanced", "expert"] }).notNull(),
+  supportingAchievementId: text("supporting_achievement_id").references(() => careerAchievements.id, { onDelete: "set null" }),
+  sourceType: text("source_type", { enum: evidenceSourceTypes }).notNull().default("user_entered"),
+  sourceLabel: text("source_label"),
+  verificationState: text("verification_state", { enum: evidenceStates }).notNull().default("needs_clarification"),
+  locked: integer("locked", { mode: "boolean" }).notNull().default(false),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+}, (table) => [
+  uniqueIndex("career_skill_normalized_name_unique").on(table.normalizedName),
+]);
+
+export const careerProfileItems = sqliteTable("career_profile_items", {
+  id: text("id").primaryKey(),
+  kind: text("kind", { enum: ["project", "education", "certification", "award", "publication", "link"] }).notNull(),
+  title: text("title").notNull(),
+  organization: text("organization"),
+  description: text("description").notNull(),
+  startDate: text("start_date"),
+  endDate: text("end_date"),
+  url: text("url"),
+  credentialId: text("credential_id"),
+  technologies: text("technologies", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+  sourceType: text("source_type", { enum: evidenceSourceTypes }).notNull().default("user_entered"),
+  sourceLabel: text("source_label"),
+  verificationState: text("verification_state", { enum: evidenceStates }).notNull().default("needs_clarification"),
+  locked: integer("locked", { mode: "boolean" }).notNull().default(false),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const careerStories = sqliteTable("career_stories", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  situation: text("situation").notNull(),
+  task: text("task").notNull(),
+  action: text("action").notNull(),
+  result: text("result").notNull(),
+  reflection: text("reflection").notNull(),
+  roleFamilies: text("role_families", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+  prompts: text("prompts", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+  supportingAchievementId: text("supporting_achievement_id").references(() => careerAchievements.id, { onDelete: "set null" }),
+  sourceType: text("source_type", { enum: evidenceSourceTypes }).notNull().default("user_entered"),
+  sourceLabel: text("source_label"),
+  verificationState: text("verification_state", { enum: evidenceStates }).notNull().default("needs_clarification"),
+  locked: integer("locked", { mode: "boolean" }).notNull().default(false),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const careerAnswers = sqliteTable("career_answers", {
+  id: text("id").primaryKey(),
+  question: text("question").notNull(),
+  answer: text("answer").notNull(),
+  contexts: text("contexts", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+  supportingAchievementId: text("supporting_achievement_id").references(() => careerAchievements.id, { onDelete: "set null" }),
+  sourceType: text("source_type", { enum: evidenceSourceTypes }).notNull().default("user_entered"),
+  sourceLabel: text("source_label"),
+  verificationState: text("verification_state", { enum: evidenceStates }).notNull().default("needs_clarification"),
+  locked: integer("locked", { mode: "boolean" }).notNull().default(false),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const careerVoiceProfiles = sqliteTable("career_voice_profiles", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  tone: text("tone").notNull(),
+  principles: text("principles", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+  avoid: text("avoid", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+  sample: text("sample"),
+  sourceType: text("source_type", { enum: evidenceSourceTypes }).notNull().default("user_entered"),
+  sourceLabel: text("source_label"),
+  verificationState: text("verification_state", { enum: evidenceStates }).notNull().default("needs_clarification"),
+  locked: integer("locked", { mode: "boolean" }).notNull().default(false),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
 });

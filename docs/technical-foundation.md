@@ -59,3 +59,34 @@ Define search strategy -> validate practical constraints -> save immutable versi
 ## Security boundary
 
 The application is not safe to expose publicly yet. Before hosting it, add authentication, authorize every data read and Server Action, define encrypted backup/export behavior, and document secret handling. Raw job descriptions and future resume data must never enter analytics logs.
+
+## Third vertical slice
+
+The career-profile evidence bank supports manually entered, reviewable records across the complete profile taxonomy:
+
+```text
+Add experience -> link a structured achievement -> add contextual skills
+               -> add projects, education, credentials, awards, publications, and links
+               -> prepare interview stories, reusable answers, and writing voice
+               -> review, verify, restrict, or lock each item
+               -> surface evidence-health warnings
+               -> unlock first-resume readiness without requiring full verification
+```
+
+### Acceptance criteria
+
+- Experiences preserve role, company, dates, location, scope, structured responsibilities, technologies, and an optional source note.
+- Achievements stay linked to an experience and separate problem, personal action, result, measurable outcome, tools, and relevant role families.
+- Skills capture context, recency, proficiency, and optional supporting evidence.
+- Projects, education, certifications, awards, publications, and professional links retain their relevant organization, dates, URL, credential, description, topics, and source.
+- Interview stories preserve situation, task, personal action, result, reflection, useful prompts, role families, and optional supporting achievement.
+- Reusable screening answers and writing-voice guidance remain reviewable evidence records rather than automatic outbound content.
+- Provenance is stored separately from verification state so an imported fact is never treated as verified by implication.
+- Every item starts in review and can be edited, verified, archived, prohibited from external use, and locked individually.
+- Locked items reject content and state changes at the data-access boundary until explicitly unlocked.
+- One usable experience, one achievement linked to a usable experience, and one usable skill unlock first-resume readiness even when those items still need review.
+- Archived and externally prohibited evidence never contributes to readiness.
+- Potential duplicate records, conflicting experience dates, stale skills, and metrics without source notes are visible in evidence health.
+- Every create, edit, and evidence-state change produces an audit event.
+
+Resume import and AI extraction can populate these same records later without bypassing their review state or provenance.

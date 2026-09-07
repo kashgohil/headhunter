@@ -29,7 +29,7 @@ const navigation = [
   { label: "Job inbox", icon: Inbox, href: "/jobs" },
   { label: "Pipeline", icon: SlidersHorizontal, disabled: true },
   { label: "Resume studio", icon: FileText, disabled: true },
-  { label: "Career profile", icon: UserRound, disabled: true },
+  { label: "Career profile", icon: UserRound, href: "/career-profile" },
 ];
 
 function BrandMark() {
