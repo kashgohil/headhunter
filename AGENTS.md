@@ -7,3 +7,11 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Project interface rules
+
+- Style interfaces with Tailwind CSS utilities. Do not add component-specific custom CSS classes.
+- Build interface primitives with shadcn/ui and adapt them to the Headhunter theme.
+- Use Inter through `next/font` for application typography.
+- Use Motion for purposeful React animation. Keep frequent interactions crisp and avoid decorative motion that slows work down.
+- Apply Emil Kowalski's design-engineering principles while building UI and run the animation-review skill before completing motion work.
