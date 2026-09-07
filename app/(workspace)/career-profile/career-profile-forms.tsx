@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { MonthPicker } from "@/components/ui/month-picker";
 import { Textarea } from "@/components/ui/textarea";
 import type {
   CareerAchievement,
@@ -103,10 +104,10 @@ export function ExperienceForm({ experience }: { experience?: CareerExperience }
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Started" name="startDate" error={state.errors?.startDate}>
-            <Input id="startDate" name="startDate" type="month" defaultValue={experience?.startDate} required aria-invalid={Boolean(state.errors?.startDate)} aria-describedby="startDate-error" />
+            <MonthPicker id="startDate" name="startDate" defaultValue={experience?.startDate} aria-invalid={Boolean(state.errors?.startDate)} aria-describedby="startDate-error" />
           </Field>
           <Field label="Ended" name="endDate" error={state.errors?.endDate}>
-            <Input id="endDate" name="endDate" type="month" defaultValue={experience?.endDate ?? ""} aria-invalid={Boolean(state.errors?.endDate)} aria-describedby="endDate-error" />
+            <MonthPicker id="endDate" name="endDate" defaultValue={experience?.endDate} aria-invalid={Boolean(state.errors?.endDate)} aria-describedby="endDate-error" />
           </Field>
         </div>
         <Field label="Role summary" name="summary" error={state.errors?.summary} className="sm:col-span-2">

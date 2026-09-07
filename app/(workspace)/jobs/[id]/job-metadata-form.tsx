@@ -6,6 +6,7 @@ import { Check, LoaderCircle, Save } from "lucide-react";
 
 import { updateJobMetadataAction, type JobMetadataState } from "@/app/(workspace)/jobs/actions";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
@@ -134,12 +135,12 @@ export function JobMetadataForm({ job }: { job: EditableJob }) {
         </div>
         <div className="space-y-2">
           <FieldLabel htmlFor="postedAt">Posted date</FieldLabel>
-          <Input id="postedAt" name="postedAt" type="date" defaultValue={job.postedAt} aria-invalid={Boolean(state.errors?.postedAt)} aria-describedby="postedAt-error" />
+          <DatePicker id="postedAt" name="postedAt" defaultValue={job.postedAt} aria-invalid={Boolean(state.errors?.postedAt)} aria-describedby="postedAt-error" />
           <FieldError id="postedAt-error" messages={state.errors?.postedAt} />
         </div>
         <div className="space-y-2">
           <FieldLabel htmlFor="applicationDeadline">Application deadline</FieldLabel>
-          <Input id="applicationDeadline" name="applicationDeadline" type="date" defaultValue={job.applicationDeadline} aria-invalid={Boolean(state.errors?.applicationDeadline)} aria-describedby="applicationDeadline-error" />
+          <DatePicker id="applicationDeadline" name="applicationDeadline" defaultValue={job.applicationDeadline} aria-invalid={Boolean(state.errors?.applicationDeadline)} aria-describedby="applicationDeadline-error" />
           <FieldError id="applicationDeadline-error" messages={state.errors?.applicationDeadline} />
         </div>
       </div>

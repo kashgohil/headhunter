@@ -20,6 +20,7 @@ import {
   useResetOnSuccess,
 } from "@/app/(workspace)/career-profile/career-profile-forms";
 import { Input } from "@/components/ui/input";
+import { MonthPicker } from "@/components/ui/month-picker";
 import { Textarea } from "@/components/ui/textarea";
 import type {
   CareerAchievement,
@@ -61,10 +62,10 @@ export function ProfileItemForm({ item }: { item?: CareerProfileItem }) {
           <Textarea name="description" defaultValue={item?.description} placeholder="What this represents, what you contributed, and why it matters." className="min-h-24" required aria-invalid={Boolean(state.errors?.description)} />
         </Field>
         <Field label="Started or issued" name="startDate" error={state.errors?.startDate}>
-          <Input name="startDate" type="month" defaultValue={item?.startDate ?? ""} aria-invalid={Boolean(state.errors?.startDate)} />
+          <MonthPicker name="startDate" defaultValue={item?.startDate} aria-invalid={Boolean(state.errors?.startDate)} />
         </Field>
         <Field label="Ended or expires" name="endDate" error={state.errors?.endDate}>
-          <Input name="endDate" type="month" defaultValue={item?.endDate ?? ""} aria-invalid={Boolean(state.errors?.endDate)} />
+          <MonthPicker name="endDate" defaultValue={item?.endDate} aria-invalid={Boolean(state.errors?.endDate)} />
         </Field>
         <Field label="URL" name="url" error={state.errors?.url}>
           <Input name="url" type="url" defaultValue={item?.url ?? ""} placeholder="https://…" aria-invalid={Boolean(state.errors?.url)} />
