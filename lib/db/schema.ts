@@ -68,6 +68,13 @@ export const pipelineStages = sqliteTable("pipeline_stages", {
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
 });
 
+export const commandCenterAlerts = sqliteTable("command_center_alerts", {
+  key: text("key").primaryKey(),
+  dismissed: integer("dismissed", { mode: "boolean" }).notNull().default(false),
+  snoozedUntil: integer("snoozed_until", { mode: "timestamp_ms" }),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+});
+
 export const applicationTasks = sqliteTable("application_tasks", {
   id: text("id").primaryKey(),
   jobId: text("job_id").notNull().references(() => jobs.id, { onDelete: "cascade" }),

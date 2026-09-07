@@ -112,3 +112,13 @@ Select a job -> compare structured role data with strategy and career evidence
 - Reweighting creates a new analysis version. A human override preserves both the calculated recommendation and the user’s reason.
 - The latest effective recommendation and score are visible in the job inbox.
 - The analyzer is deterministic and covered independently from persistence and presentation.
+
+## Command center (ISSUE-249)
+
+The home route summarizes recorded application work and links every reminder to its source. Alerts cover deadlines, scheduled interviews, next actions, open tasks, applications with no recorded activity for 14 days, missing next actions, uncertain job extraction, missing milestone history, and roles marked with high priority or interest. Empty states link to search strategy and job capture.
+
+Ranking puts overdue work first, followed by work due within 24 hours, within seven days, and later or undated work. Within those groups, the action type, user priority, and interest determine order. The existing weekly search budget provides capacity context; preparation effort and time spent are not measured in this basic version. Date-only reminders become overdue after their UTC calendar date; interview timestamps retain their exact time and are labelled UTC.
+
+Dismissal and 24-hour snooze preferences persist in SQLite and can be restored. Keys include the source and relevant action/date, so changing a next action or rescheduling an interview creates a fresh reminder. Completed tasks, cancelled/completed rounds, and terminal applications are excluded from active work.
+
+The all-time funnel counts distinct applications with recorded milestone events, mapping custom stages to their standard category. Submission snapshots also establish Applied. Repeated transitions count once; skipped milestones are not inferred, and missing current-stage history produces a data check. Each count expands to its underlying applications. Recent stage changes and captures use a trailing seven-day window. No improvement trend or conversion claim is inferred from these counts.

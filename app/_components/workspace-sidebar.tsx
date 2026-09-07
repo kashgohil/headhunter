@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/sidebar";
 
 const navigation = [
-  { label: "Command center", icon: LayoutDashboard, disabled: true },
+  { label: "Command center", icon: LayoutDashboard, href: "/" },
   { label: "Job inbox", icon: Inbox, href: "/jobs" },
   { label: "Pipeline", icon: SlidersHorizontal, href: "/pipeline" },
   { label: "Resume studio", icon: FileText, href: "/resumes" },
@@ -50,7 +50,7 @@ export function WorkspaceSidebar() {
           <SidebarMenu className="min-w-0 flex-1 group-data-[collapsible=icon]:flex-none">
             <SidebarMenuItem>
               <SidebarMenuButton asChild size="lg" tooltip="Headhunter">
-                <Link href="/jobs" aria-label="Headhunter job inbox">
+                <Link href="/" aria-label="Headhunter command center">
                   <BrandMark />
                   <span className="font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
                     Headhunter
@@ -70,7 +70,7 @@ export function WorkspaceSidebar() {
               {navigation.map((item) => (
                 <SidebarMenuItem key={item.label}>
                   {item.href ? (
-                    <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)} tooltip={item.label}>
+                    <SidebarMenuButton asChild isActive={item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)} tooltip={item.label}>
                       <Link href={item.href}>
                         <item.icon />
                         <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>

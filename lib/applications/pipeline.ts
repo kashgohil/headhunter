@@ -95,6 +95,9 @@ export async function getPipelineOverview() {
       sourceType: jobs.sourceType,
       sourceUrl: jobs.sourceUrl,
       capturedAt: jobs.capturedAt,
+      applicationDeadline: jobs.applicationDeadline,
+      extractionConfidence: jobs.extractionConfidence,
+      metadataUpdatedAt: jobs.metadataUpdatedAt,
       stage: opportunities.stage,
       priority: opportunities.priority,
       interest: opportunities.interest,
@@ -139,7 +142,7 @@ export async function getPipelineOverview() {
     return {
       ...row,
       stageDefinition: stageMap.get(row.stage) ?? null,
-      applicationDate: applicationSubmissions[0]?.submittedAt ?? null,
+      applicationDate: applicationSubmissions.at(0)?.submittedAt ?? null,
       lastInteractionAt: applicationEvents[0]?.occurredAt ?? row.updatedAt ?? row.capturedAt,
       openTaskCount: applicationTasks.filter((item) => !item.completedAt).length,
       taskCount: applicationTasks.length,
