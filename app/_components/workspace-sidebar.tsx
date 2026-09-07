@@ -28,7 +28,7 @@ const navigation = [
   { label: "Command center", icon: LayoutDashboard, disabled: true },
   { label: "Job inbox", icon: Inbox, href: "/jobs" },
   { label: "Pipeline", icon: SlidersHorizontal, disabled: true },
-  { label: "Resume studio", icon: FileText, disabled: true },
+  { label: "Resume studio", icon: FileText, href: "/resumes" },
   { label: "Career profile", icon: UserRound, href: "/career-profile" },
 ];
 

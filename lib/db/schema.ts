@@ -46,6 +46,98 @@ export const opportunities = sqliteTable("opportunities", {
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
 });
 
+const resumeTemplates = ["classic", "modern", "compact", "minimal"] as const;
+const resumeDecisionStates = ["pending", "accepted", "rejected"] as const;
+
+export const baseResumes = sqliteTable("base_resumes", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  roleFamily: text("role_family").notNull(),
+  positioning: text("positioning").notNull().default(""),
+  summary: text("summary").notNull().default(""),
+  template: text("template", { enum: resumeTemplates }).notNull().default("classic"),
+  experienceIds: text("experience_ids", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+  achievementIds: text("achievement_ids", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+  skillIds: text("skill_ids", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+  profileItemIds: text("profile_item_ids", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+  sectionOrder: text("section_order", { mode: "json" }).$type<string[]>().notNull().default(sql`'["summary","experience","projects","skills","education"]'`),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export type ResumeSnapshot = {
+  name: string;
+  roleFamily: string;
+  template: typeof resumeTemplates[number];
+  job: { id: string; title: string; company: string };
+  summary: string;
+  experiences: Array<{
+    id: string;
+    company: string;
+    title: string;
+    location: string | null;
+    startDate: string;
+    endDate: string | null;
+    bullets: Array<{ id: string; text: string; evidenceIds: string[] }>;
+  }>;
+  skills: string[];
+  profileItems: Array<{ id: string; kind: string; title: string; organization: string | null; description: string }>;
+  sectionOrder: string[];
+};
+
+export const tailoredResumes = sqliteTable("tailored_resumes", {
+  id: text("id").primaryKey(),
+  jobId: text("job_id").notNull().references(() => jobs.id, { onDelete: "restrict" }),
+  baseResumeId: text("base_resume_id").notNull().references(() => baseResumes.id, { onDelete: "restrict" }),
+  version: integer("version").notNull(),
+  template: text("template", { enum: resumeTemplates }).notNull(),
+  status: text("status", { enum: ["draft", "submitted"] }).notNull().default("draft"),
+  summaryOriginal: text("summary_original").notNull().default(""),
+  summaryProposed: text("summary_proposed").notNull(),
+  summaryReason: text("summary_reason").notNull(),
+  summaryRequirement: text("summary_requirement").notNull(),
+  summaryEvidenceIds: text("summary_evidence_ids", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+  summaryConfidence: text("summary_confidence", { enum: ["low", "medium", "high"] }).notNull(),
+  summaryRisk: text("summary_risk", { enum: ["low", "medium", "high"] }).notNull(),
+  summaryDecision: text("summary_decision", { enum: resumeDecisionStates }).notNull().default("pending"),
+  summaryLocked: integer("summary_locked", { mode: "boolean" }).notNull().default(false),
+  sectionOrder: text("section_order", { mode: "json" }).$type<string[]>().notNull(),
+  snapshot: text("snapshot", { mode: "json" }).$type<ResumeSnapshot>(),
+  submittedAt: integer("submitted_at", { mode: "timestamp_ms" }),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+}, (table) => [
+  uniqueIndex("tailored_resume_job_version_unique").on(table.jobId, table.version),
+]);
+
+export const resumeBulletEdits = sqliteTable("resume_bullet_edits", {
+  id: text("id").primaryKey(),
+  tailoredResumeId: text("tailored_resume_id").notNull().references(() => tailoredResumes.id, { onDelete: "cascade" }),
+  experienceId: text("experience_id").notNull().references(() => careerExperiences.id, { onDelete: "restrict" }),
+  achievementId: text("achievement_id").notNull().references(() => careerAchievements.id, { onDelete: "restrict" }),
+  originalText: text("original_text").notNull(),
+  proposedText: text("proposed_text").notNull(),
+  reason: text("reason").notNull(),
+  requirementAddressed: text("requirement_addressed").notNull(),
+  evidenceIds: text("evidence_ids", { mode: "json" }).$type<string[]>().notNull(),
+  confidence: text("confidence", { enum: ["low", "medium", "high"] }).notNull(),
+  risk: text("risk", { enum: ["low", "medium", "high"] }).notNull(),
+  decision: text("decision", { enum: resumeDecisionStates }).notNull().default("pending"),
+  locked: integer("locked", { mode: "boolean" }).notNull().default(false),
+  position: integer("position").notNull(),
+  regeneration: integer("regeneration").notNull().default(0),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const resumeSectionLocks = sqliteTable("resume_section_locks", {
+  id: text("id").primaryKey(),
+  tailoredResumeId: text("tailored_resume_id").notNull().references(() => tailoredResumes.id, { onDelete: "cascade" }),
+  section: text("section").notNull(),
+  locked: integer("locked", { mode: "boolean" }).notNull().default(false),
+}, (table) => [
+  uniqueIndex("resume_section_lock_unique").on(table.tailoredResumeId, table.section),
+]);
+
 export const auditEvents = sqliteTable("audit_events", {
   id: text("id").primaryKey(),
   action: text("action", { enum: [
@@ -69,6 +161,10 @@ export const auditEvents = sqliteTable("audit_events", {
     "career_evidence.state_changed",
     "fit_analysis.created",
     "fit_analysis.overridden",
+    "base_resume.created",
+    "tailored_resume.created",
+    "resume_edit.reviewed",
+    "resume.submitted",
   ] }).notNull(),
   entityType: text("entity_type", { enum: [
     "job",
@@ -81,6 +177,9 @@ export const auditEvents = sqliteTable("audit_events", {
     "career_answer",
     "career_voice",
     "fit_analysis",
+    "base_resume",
+    "tailored_resume",
+    "resume_edit",
   ] }).notNull(),
   entityId: text("entity_id").notNull(),
   occurredAt: integer("occurred_at", { mode: "timestamp_ms" }).notNull(),
