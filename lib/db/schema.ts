@@ -347,6 +347,9 @@ export const auditEvents = sqliteTable("audit_events", {
   action: text("action", { enum: [
     "workspace.restored",
     "notifications.updated",
+    "weekly_review.created",
+    "weekly_review.updated",
+    "weekly_review.completed",
     "job.captured",
     "job.metadata_updated",
     "search_strategy.saved",
@@ -383,6 +386,7 @@ export const auditEvents = sqliteTable("audit_events", {
   entityType: text("entity_type", { enum: [
     "workspace",
     "notification_preferences",
+    "weekly_review",
     "job",
     "search_strategy",
     "career_experience",
@@ -579,5 +583,15 @@ export const careerVoiceProfiles = sqliteTable("career_voice_profiles", {
 export const notificationPreferences = sqliteTable("notification_preferences", {
   id: text("id").primaryKey(),
   settings: text("settings", { mode: "json" }).$type<import("@/lib/notifications/preferences").NotificationPreferences>().notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const weeklyReviews = sqliteTable("weekly_reviews", {
+  id: text("id").primaryKey(),
+  weekStart: text("week_start").notNull().unique(),
+  snapshot: text("snapshot", { mode: "json" }).$type<import("@/lib/weekly-review/model").WeeklySnapshot>().notNull(),
+  edits: text("edits", { mode: "json" }).$type<import("@/lib/weekly-review/storage").ReviewEdits>().notNull(),
+  revision: integer("revision").notNull().default(1),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
   updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
 });

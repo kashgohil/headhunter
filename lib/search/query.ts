@@ -18,6 +18,7 @@ export type SearchResult = {
 };
 // Fixed SQL projections keep private metadata out of results. User input is always bound.
 const projections = [
+  `SELECT id, 'notes' kind, 'Weekly review · ' || week_start title, coalesce(json_extract(edits, '$.reflection'),'') || ' ' || coalesce(json_extract(edits, '$.interpretation'),'') || ' ' || coalesce(json_extract(edits, '$.nextWeekPlan'),'') || ' ' || coalesce(json_extract(edits, '$.experimentOne'),'') || ' ' || coalesce(json_extract(edits, '$.experimentTwo'),'') content, '/reviews/' || id href FROM weekly_reviews`,
   `SELECT id, 'jobs' kind, title || ' · ' || company title, original_description || ' ' || coalesce(location, '') content, '/jobs/' || id href FROM jobs`,
   `SELECT normalized_company_name id, 'companies' kind, company_name title, group_concat(content, ' ') content, '/search?kind=jobs&q=' || company_name href FROM company_research_entries GROUP BY normalized_company_name`,
   `SELECT company id, 'companies' kind, company title, company content, '/jobs/' || min(id) href FROM jobs WHERE lower(trim(company)) NOT IN (SELECT normalized_company_name FROM company_research_entries) GROUP BY company`,
