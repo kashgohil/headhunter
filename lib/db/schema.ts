@@ -157,6 +157,69 @@ export const applicationInterviews = sqliteTable("application_interviews", {
   updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
 });
 
+export const calendarConnections = sqliteTable("calendar_connections", {
+  id: text("id").primaryKey(),
+  provider: text("provider", { enum: ["google"] }).notNull(),
+  accountLabel: text("account_label").notNull().default("Google Calendar"),
+  encryptedCredentials: text("encrypted_credentials").notNull(),
+  grantedScopes: text("granted_scopes", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+  status: text("status", { enum: ["connected", "expired", "error"] }).notNull().default("connected"),
+  lastAttemptAt: integer("last_attempt_at", { mode: "timestamp_ms" }),
+  lastSuccessAt: integer("last_success_at", { mode: "timestamp_ms" }),
+  lastError: text("last_error"),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const calendarOauthStates = sqliteTable("calendar_oauth_states", {
+  stateHash: text("state_hash").primaryKey(),
+  provider: text("provider", { enum: ["google"] }).notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const externalCalendars = sqliteTable("external_calendars", {
+  id: text("id").primaryKey(),
+  connectionId: text("connection_id").notNull().references(() => calendarConnections.id, { onDelete: "cascade" }),
+  providerCalendarId: text("provider_calendar_id").notNull(),
+  name: text("name").notNull(),
+  timeZone: text("time_zone").notNull(),
+  primary: integer("is_primary", { mode: "boolean" }).notNull().default(false),
+  selected: integer("selected", { mode: "boolean" }).notNull().default(false),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+}, (table) => [
+  uniqueIndex("external_calendar_provider_unique").on(table.connectionId, table.providerCalendarId),
+]);
+
+export const externalCalendarEvents = sqliteTable("external_calendar_events", {
+  id: text("id").primaryKey(),
+  calendarId: text("calendar_id").notNull().references(() => externalCalendars.id, { onDelete: "cascade" }),
+  providerEventId: text("provider_event_id").notNull(),
+  title: text("title").notNull(),
+  location: text("location"),
+  status: text("status", { enum: ["confirmed", "tentative", "cancelled"] }).notNull(),
+  startAt: integer("start_at", { mode: "timestamp_ms" }).notNull(),
+  endAt: integer("end_at", { mode: "timestamp_ms" }).notNull(),
+  timeZone: text("time_zone").notNull(),
+  allDay: integer("all_day", { mode: "boolean" }).notNull().default(false),
+  recurringEventId: text("recurring_event_id"),
+  originalStartTime: text("original_start_time"),
+  providerUpdatedAt: integer("provider_updated_at", { mode: "timestamp_ms" }).notNull(),
+  removed: integer("removed", { mode: "boolean" }).notNull().default(false),
+  lastSeenAt: integer("last_seen_at", { mode: "timestamp_ms" }).notNull(),
+}, (table) => [
+  uniqueIndex("external_calendar_event_provider_unique").on(table.calendarId, table.providerEventId),
+  index("external_calendar_event_start_idx").on(table.startAt),
+]);
+
+export const calendarEventLinks = sqliteTable("calendar_event_links", {
+  id: text("id").primaryKey(),
+  eventId: text("event_id").notNull().unique().references(() => externalCalendarEvents.id, { onDelete: "cascade" }),
+  interviewId: text("interview_id").notNull().unique().references(() => applicationInterviews.id, { onDelete: "cascade" }),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+});
+
 export const contacts = sqliteTable("contacts", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -413,6 +476,10 @@ export const auditEvents = sqliteTable("audit_events", {
     "resume_identity.updated",
     "application.updated",
     "application.submitted",
+    "calendar.connected",
+    "calendar.synced",
+    "calendar.linked",
+    "calendar.disconnected",
   ] }).notNull(),
   entityType: text("entity_type", { enum: [
     "workspace",
@@ -436,6 +503,8 @@ export const auditEvents = sqliteTable("audit_events", {
     "resume_edit",
     "application",
     "application_submission",
+    "calendar_connection",
+    "calendar_event",
   ] }).notNull(),
   entityId: text("entity_id").notNull(),
   occurredAt: integer("occurred_at", { mode: "timestamp_ms" }).notNull(),
