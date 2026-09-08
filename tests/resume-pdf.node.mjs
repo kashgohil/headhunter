@@ -40,7 +40,13 @@ describe('Unicode resume PDF export', () => {
     assert.doesNotMatch(result.text, /Internal profile label/);
     const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
     const task = pdfjs.getDocument({ data: bytes, verbosity: 0 });
-    try { assert.ok((await task.promise).numPages > 1); } finally { await task.destroy(); }
+    try {
+      const document = await task.promise;
+      assert.ok(document.numPages > 1);
+      assert.ok(document.numPages < 8);
+      const last = await (await document.getPage(document.numPages)).getTextContent();
+      assert.ok(last.items.filter(item => 'str' in item).map(item => item.str).join(' ').replace(/\d+ \/ \d+/, '').trim().length > 20);
+    } finally { await task.destroy(); }
   });
 
   it('rejects unsupported glyphs without changing the source', async () => {

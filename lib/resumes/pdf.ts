@@ -68,18 +68,62 @@ function registerFonts(doc: PDFKit.PDFDocument) {
   }
 }
 
+function selectFont(doc: PDFKit.PDFDocument, family: FontFamily, bold = false) {
+  const names = FONT_NAMES[family];
+  return doc.font(bold ? names.bold : names.regular);
+}
+
+function textWidth(doc: PDFKit.PDFDocument, value: string, size: number, bold = false) {
+  doc.fontSize(size);
+  return runs(value).reduce((width, fragment) => width + selectFont(doc, fragment.family, bold).widthOfString(fragment.text, { features: [] }), 0);
+}
+
+function wrapText(doc: PDFKit.PDFDocument, value: string, width: number, size: number, bold = false) {
+  const tokens = value.split(/(\s+)/u).filter(Boolean);
+  const lines: string[] = [];
+  let line = "";
+  for (const token of tokens) {
+    const candidate = line + token;
+    if (line.trim() && textWidth(doc, candidate, size, bold) > width) {
+      lines.push(line.trimEnd());
+      line = token.trimStart();
+    } else line = candidate;
+    while (line && textWidth(doc, line, size, bold) > width) {
+      const clusters = [...graphemes.segment(line)].map((item) => item.segment);
+      let fitting = "";
+      while (clusters.length && textWidth(doc, fitting + clusters[0], size, bold) <= width) fitting += clusters.shift();
+      if (!fitting) fitting = clusters.shift() ?? "";
+      lines.push(fitting.trimEnd());
+      line = clusters.join("").trimStart();
+    }
+  }
+  if (line.trim()) lines.push(line.trimEnd());
+  return lines.length ? lines : [""];
+}
+
 function writeText(doc: PDFKit.PDFDocument, value: string, style: TextStyle) {
-  const fragments = runs(value);
-  const x = doc.page.margins.left + (style.indent ?? 0);
+  const left = doc.page.margins.left + (style.indent ?? 0);
   const width = doc.page.width - doc.page.margins.left - doc.page.margins.right - (style.indent ?? 0);
-  doc.fillColor(style.color ?? "#171717").fontSize(style.size);
-  doc.markContent("Span", { actual: value });
-  fragments.forEach((fragment, index) => {
-    const names = FONT_NAMES[fragment.family];
-    doc.font(style.bold ? names.bold : names.regular).text(fragment.text, index === 0 ? x : undefined, index === 0 ? doc.y : undefined, { width, align: style.align ?? "left", continued: index < fragments.length - 1, lineGap: style.size * 0.25, link: style.link, underline: Boolean(style.link), features: [] });
-  });
-  doc.endMarkedContent();
-  doc.moveDown((style.gapAfter ?? 4) / style.size);
+  const lines = wrapText(doc, value, width, style.size, style.bold);
+  const lineHeight = style.size * 1.35;
+  let y = doc.y;
+  for (const line of lines) {
+    if (y + lineHeight * 1.65 > doc.page.height - doc.page.margins.bottom) {
+      doc.addPage();
+      y = doc.page.margins.top;
+    }
+    const lineWidth = textWidth(doc, line, style.size, style.bold);
+    let x = style.align === "center" ? left + Math.max(0, (width - lineWidth) / 2) : left;
+    doc.fillColor(style.color ?? "#171717").fontSize(style.size).markContent("Span", { actual: line });
+    for (const fragment of runs(line)) {
+      selectFont(doc, fragment.family, style.bold).text(fragment.text, x, y, { lineBreak: false, features: [], link: style.link, underline: Boolean(style.link) });
+      x += selectFont(doc, fragment.family, style.bold).widthOfString(fragment.text, { features: [] });
+    }
+    doc.endMarkedContent();
+    y += lineHeight;
+  }
+  doc.x = doc.page.margins.left;
+  doc.y = y + (style.gapAfter ?? 4);
 }
 
 function heading(doc: PDFKit.PDFDocument, value: string, modern: boolean) {
@@ -133,7 +177,9 @@ export async function createResumePdf(snapshot: ResumeSnapshot) {
   const range = doc.bufferedPageRange();
   for (let index = range.start; index < range.start + range.count; index++) {
     doc.switchToPage(index);
-    doc.font(FONT_NAMES.latin.regular).fontSize(7).fillColor("#777777").text(`${index + 1} / ${range.count}`, doc.page.margins.left, doc.page.height - 34, { width: doc.page.width - doc.page.margins.left - doc.page.margins.right, align: "right" });
+    const label = `${index + 1} / ${range.count}`;
+    doc.font(FONT_NAMES.latin.regular).fontSize(7).fillColor("#777777");
+    doc.text(label, doc.page.width - doc.page.margins.right - doc.widthOfString(label), doc.page.height - 30, { lineBreak: false });
   }
   doc.end();
   return completed;
