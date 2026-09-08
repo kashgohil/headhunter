@@ -13,6 +13,7 @@
     "db:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
+    "@xmldom/xmldom": "^0.9.12",
     "better-sqlite3": "^13.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -21,11 +22,13 @@
     "lucide-react": "^1.41.0",
     "motion": "^13.2.0",
     "next": "16.3.4",
+    "pdfjs-dist": "^6.3.289",
     "radix-ui": "^1.6.7",
     "react": "19.2.8",
     "react-day-picker": "^10.0.1",
     "react-dom": "19.2.8",
     "tailwind-merge": "^3.6.0",
+    "yauzl": "^3.4.0",
     "zod": "^4.5.4"
   },
   "devDependencies": {
@@ -35,6 +38,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/yauzl": "^3.4.0",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
