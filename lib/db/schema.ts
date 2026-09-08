@@ -620,3 +620,28 @@ export const analyticsExperiments = sqliteTable("analytics_experiments", {
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
   updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
 });
+
+export const resumeImports = sqliteTable("resume_imports", {
+  id: text("id").primaryKey(),
+  fingerprint: text("fingerprint").notNull().unique(),
+  name: text("name").notNull(),
+  format: text("format", { enum: ["pdf", "docx", "text"] }).notNull(),
+  sourceText: text("source_text").notNull(),
+  warning: text("warning").notNull().default(""),
+  extractorVersion: text("extractor_version").notNull(),
+  createdAt: integer("created_at").notNull(),
+});
+
+export const resumeImportProposals = sqliteTable("resume_import_proposals", {
+  id: text("id").primaryKey(),
+  importId: text("import_id").notNull().references(() => resumeImports.id, { onDelete: "cascade" }),
+  sourceKey: text("source_key").notNull(),
+  kind: text("kind", { enum: ["experience", "achievement", "skill", "education", "project"] }).notNull(),
+  sourceQuote: text("source_quote").notNull(),
+  fields: text("fields", { mode: "json" }).$type<Record<string, string>>().notNull(),
+  state: text("state", { enum: ["pending", "approved", "rejected"] }).notNull().default("pending"),
+  evidenceId: text("evidence_id"),
+  revision: integer("revision").notNull().default(0),
+  createdAt: integer("created_at").notNull(),
+  updatedAt: integer("updated_at").notNull(),
+}, (table) => [uniqueIndex("resume_import_proposal_source_unique").on(table.importId, table.sourceKey)]);
