@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { createBulletSuggestions, createSummary, rankAchievements, regenerateBullet } from "@/lib/resumes/tailoring";
 import { createResumePdf } from "@/lib/resumes/pdf";
+import { candidateIdentitySchema } from "@/lib/resumes/validation";
 
 const job = {
   title: "Senior Product Manager",
@@ -42,6 +43,13 @@ describe("resume tailoring", () => {
     expect(summary.text).toContain("Analytics");
     expect(summary.evidenceIds).toEqual(["e", "s"]);
     expect(summary.risk).toBe("low");
+  });
+
+  test("keeps employer-facing identity separate and validates contact links", () => {
+    const identity = candidateIdentitySchema.parse({ candidateName: "José शर्मा", candidateEmail: "jose@example.com", candidatePhone: "+91 98765 43210", candidateLocation: "Pune, India", candidateWebsite: "https://example.com/portfolio" });
+    expect(identity.candidateName).toBe("José शर्मा");
+    expect(candidateIdentitySchema.safeParse({ ...identity, candidateWebsite: "javascript:alert(1)" }).success).toBe(false);
+    expect(candidateIdentitySchema.safeParse({ ...identity, candidateEmail: "not-an-email" }).success).toBe(false);
   });
 
   test("exports a selectable PDF document", () => {

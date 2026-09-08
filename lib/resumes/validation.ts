@@ -3,6 +3,18 @@ import { z } from "zod";
 import { resumeTemplates } from "@/lib/resumes/types";
 
 const idList = z.array(z.string().uuid()).default([]);
+const optionalText = (maximum: number) => z.string().trim().max(maximum).default("");
+
+export const candidateIdentitySchema = z.object({
+  candidateName: z.string().trim().min(2, "Add the candidate name shown to employers.").max(160),
+  candidateEmail: z.union([z.literal(""), z.email("Use a valid email address.")]).default(""),
+  candidatePhone: optionalText(60),
+  candidateLocation: optionalText(160),
+  candidateWebsite: z.union([
+    z.literal(""),
+    z.url("Use a complete HTTP or HTTPS URL.").max(500).refine((value) => ["http:", "https:"].includes(new URL(value).protocol), "Use an HTTP or HTTPS URL."),
+  ]).default(""),
+});
 
 export const baseResumeSchema = z.object({
   name: z.string().trim().min(2, "Give this resume a name.").max(80),
@@ -14,7 +26,7 @@ export const baseResumeSchema = z.object({
   achievementIds: idList,
   skillIds: idList,
   profileItemIds: idList,
-}).refine((value) => value.experienceIds.length > 0, {
+}).extend(candidateIdentitySchema.shape).refine((value) => value.experienceIds.length > 0, {
   message: "Select at least one experience.",
   path: ["experienceIds"],
 });
@@ -35,3 +47,4 @@ export const editProposalSchema = z.object({
 });
 
 export type BaseResumeInput = z.infer<typeof baseResumeSchema>;
+export type CandidateIdentityInput = z.infer<typeof candidateIdentitySchema>;

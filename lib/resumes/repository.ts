@@ -19,7 +19,7 @@ import {
   type ResumeSnapshot,
 } from "@/lib/db/schema";
 import { createBulletSuggestions, createSummary, regenerateBullet } from "@/lib/resumes/tailoring";
-import type { BaseResumeInput } from "@/lib/resumes/validation";
+import { candidateIdentitySchema, type BaseResumeInput, type CandidateIdentityInput } from "@/lib/resumes/validation";
 import type { ResumeDecision, ResumeTemplate } from "@/lib/resumes/types";
 
 export type BaseResume = typeof baseResumes.$inferSelect;
@@ -101,6 +101,11 @@ export async function createTailoredResume(baseResumeId: string, jobId: string) 
       baseResumeId,
       version,
       template: base.template,
+      candidateName: base.candidateName,
+      candidateEmail: base.candidateEmail,
+      candidatePhone: base.candidatePhone,
+      candidateLocation: base.candidateLocation,
+      candidateWebsite: base.candidateWebsite,
       summaryOriginal: base.summary,
       summaryProposed: summary.text,
       summaryReason: "Position the verified profile around this role without introducing new claims.",
@@ -266,6 +271,16 @@ export async function setResumeSectionOrder(resumeId: string, order: string[]) {
   await db.update(tailoredResumes).set({ sectionOrder: order, updatedAt: new Date() }).where(eq(tailoredResumes.id, resumeId));
 }
 
+export async function updateResumeIdentity(resumeId: string, input: CandidateIdentityInput) {
+  await assertDraft(resumeId);
+  const identity = candidateIdentitySchema.parse(input);
+  const now = new Date();
+  db.transaction((tx) => {
+    tx.update(tailoredResumes).set({ ...identity, updatedAt: now }).where(eq(tailoredResumes.id, resumeId)).run();
+    tx.insert(auditEvents).values({ id: crypto.randomUUID(), action: "resume_identity.updated", entityType: "tailored_resume", entityId: resumeId, occurredAt: now }).run();
+  });
+}
+
 export function buildSnapshot(detail: NonNullable<Awaited<ReturnType<typeof getTailoredResume>>>): ResumeSnapshot {
   if (detail.resume.snapshot) return detail.resume.snapshot;
   const experienceRank = new Map(detail.edits.map((edit, index) => [edit.experienceId, index]));
@@ -280,6 +295,13 @@ export function buildSnapshot(detail: NonNullable<Awaited<ReturnType<typeof getT
   }
   return {
     name: detail.base.name,
+    candidate: {
+      name: detail.resume.candidateName,
+      email: detail.resume.candidateEmail,
+      phone: detail.resume.candidatePhone,
+      location: detail.resume.candidateLocation,
+      website: detail.resume.candidateWebsite,
+    },
     roleFamily: detail.base.roleFamily,
     template: detail.resume.template,
     job: { id: detail.job.id, title: detail.job.title, company: detail.job.company },
@@ -295,6 +317,7 @@ export async function submitResume(resumeId: string) {
   const detail = await getTailoredResume(resumeId);
   if (!detail) throw new Error("Resume draft not found.");
   if (detail.resume.status === "submitted") return;
+  if (!detail.resume.candidateName.trim()) throw new Error("Add the candidate identity before marking this resume submitted.");
   if (detail.resume.summaryDecision === "pending" || detail.edits.some((edit) => edit.decision === "pending")) throw new Error("Review every pending suggestion before marking this resume submitted.");
   const snapshot = buildSnapshot(detail);
   const now = new Date();

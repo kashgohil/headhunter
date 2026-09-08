@@ -256,6 +256,11 @@ const resumeDecisionStates = ["pending", "accepted", "rejected"] as const;
 export const baseResumes = sqliteTable("base_resumes", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
+  candidateName: text("candidate_name").notNull().default(""),
+  candidateEmail: text("candidate_email").notNull().default(""),
+  candidatePhone: text("candidate_phone").notNull().default(""),
+  candidateLocation: text("candidate_location").notNull().default(""),
+  candidateWebsite: text("candidate_website").notNull().default(""),
   roleFamily: text("role_family").notNull(),
   positioning: text("positioning").notNull().default(""),
   summary: text("summary").notNull().default(""),
@@ -271,6 +276,13 @@ export const baseResumes = sqliteTable("base_resumes", {
 
 export type ResumeSnapshot = {
   name: string;
+  candidate?: {
+    name: string;
+    email: string;
+    phone: string;
+    location: string;
+    website: string;
+  };
   roleFamily: string;
   template: typeof resumeTemplates[number];
   job: { id: string; title: string; company: string };
@@ -295,6 +307,11 @@ export const tailoredResumes = sqliteTable("tailored_resumes", {
   baseResumeId: text("base_resume_id").notNull().references(() => baseResumes.id, { onDelete: "restrict" }),
   version: integer("version").notNull(),
   template: text("template", { enum: resumeTemplates }).notNull(),
+  candidateName: text("candidate_name").notNull().default(""),
+  candidateEmail: text("candidate_email").notNull().default(""),
+  candidatePhone: text("candidate_phone").notNull().default(""),
+  candidateLocation: text("candidate_location").notNull().default(""),
+  candidateWebsite: text("candidate_website").notNull().default(""),
   status: text("status", { enum: ["draft", "submitted"] }).notNull().default("draft"),
   summaryOriginal: text("summary_original").notNull().default(""),
   summaryProposed: text("summary_proposed").notNull(),
@@ -393,6 +410,7 @@ export const auditEvents = sqliteTable("audit_events", {
     "resume_summary.regenerated",
     "resume_edit.regenerated",
     "resume.submitted",
+    "resume_identity.updated",
     "application.updated",
     "application.submitted",
   ] }).notNull(),

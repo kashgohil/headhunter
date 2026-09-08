@@ -21,7 +21,7 @@ export function ResumePreview({ snapshot }: { snapshot: ResumeSnapshot }) {
   };
   return (
     <div className={cn("aspect-[8.5/11] w-full overflow-hidden bg-white p-[7%] text-[11px] leading-[1.45] text-neutral-900 shadow-[0_14px_45px_rgba(25,24,22,0.12)]", style.page)}>
-      <header className={style.header}><h2 className="text-2xl font-bold tracking-[-0.04em]">{snapshot.name}</h2><p className="mt-1 text-xs text-neutral-500">{snapshot.roleFamily}</p></header>
+      <header className={style.header}><h2 className="break-words text-2xl font-bold tracking-[-0.04em]">{snapshot.candidate?.name || "Candidate identity unavailable"}</h2><p className="mt-1 break-words text-xs text-neutral-500">{[snapshot.candidate?.email, snapshot.candidate?.phone, snapshot.candidate?.location].filter(Boolean).join(" · ")}</p>{snapshot.candidate?.website ? <p className="mt-1 break-all text-xs text-neutral-500">{snapshot.candidate.website}</p> : null}</header>
       <div className={cn("mt-5 space-y-5", snapshot.template === "compact" && "mt-3 space-y-3")}>{snapshot.sectionOrder.map((section) => sections[section])}</div>
     </div>
   );

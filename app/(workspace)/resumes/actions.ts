@@ -19,8 +19,9 @@ import {
   regenerateResumeSummary,
   updateResumeSummary,
   updateResumeProposal,
+  updateResumeIdentity,
 } from "@/lib/resumes/repository";
-import { baseResumeSchema, createDraftSchema, editProposalSchema, reviewEditSchema } from "@/lib/resumes/validation";
+import { baseResumeSchema, candidateIdentitySchema, createDraftSchema, editProposalSchema, reviewEditSchema } from "@/lib/resumes/validation";
 import { resumeTemplates } from "@/lib/resumes/types";
 
 export type ResumeActionState = { success?: boolean; message?: string; errors?: Record<string, string[] | undefined> };
@@ -36,6 +37,11 @@ export async function createBaseResumeAction(_state: ResumeActionState, formData
     positioning: formData.get("positioning"),
     summary: formData.get("summary"),
     template: formData.get("template"),
+    candidateName: formData.get("candidateName"),
+    candidateEmail: formData.get("candidateEmail"),
+    candidatePhone: formData.get("candidatePhone"),
+    candidateLocation: formData.get("candidateLocation"),
+    candidateWebsite: formData.get("candidateWebsite"),
     experienceIds: values(formData, "experienceIds"),
     achievementIds: values(formData, "achievementIds"),
     skillIds: values(formData, "skillIds"),
@@ -49,6 +55,15 @@ export async function createBaseResumeAction(_state: ResumeActionState, formData
   } catch (error) {
     return { message: error instanceof Error ? error.message : "Could not save this resume." };
   }
+}
+
+export async function updateResumeIdentityAction(resumeId: string, _state: ResumeActionState, formData: FormData): Promise<ResumeActionState> {
+  const parsed = candidateIdentitySchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { message: "Check the candidate header.", errors: parsed.error.flatten().fieldErrors };
+  try { await updateResumeIdentity(resumeId, parsed.data); }
+  catch (error) { return { message: error instanceof Error ? error.message : "Could not save the candidate header." }; }
+  revalidatePath(`/resumes/${resumeId}`);
+  return { success: true, message: "Candidate header saved. Preview and PDF now use these details." };
 }
 
 export async function createTailoredResumeAction(formData: FormData) {
