@@ -1,9 +1,11 @@
 import { createResumePdf } from "@/lib/resumes/pdf";
 import { getResumeSnapshot } from "@/lib/resumes/repository";
+import { authorizeRoute, unauthorizedResponse } from "@/lib/auth/server";
 
 export const runtime = "nodejs";
 
-export async function GET(_request: Request, { params }: RouteContext<"/resumes/[id]/pdf">) {
+export async function GET(request: Request, { params }: RouteContext<"/resumes/[id]/pdf">) {
+  if (!(await authorizeRoute(request))) return unauthorizedResponse();
   const { id } = await params;
   const snapshot = await getResumeSnapshot(id);
   if (!snapshot) return new Response("Resume not found", { status: 404 });

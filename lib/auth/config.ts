@@ -26,7 +26,14 @@ export function configuredOrigin(environment: Environment = process.env) {
   const raw = environment.APP_ORIGIN;
   if (!raw) throw new Error("APP_ORIGIN is required in hosted mode.");
   const url = new URL(raw);
-  if (url.protocol !== "https:" || url.pathname !== "/" || url.search || url.hash) {
+  if (
+    url.protocol !== "https:" ||
+    url.username ||
+    url.password ||
+    url.pathname !== "/" ||
+    url.search ||
+    url.hash
+  ) {
     throw new Error("APP_ORIGIN must be an HTTPS origin without a path.");
   }
   return url.origin;

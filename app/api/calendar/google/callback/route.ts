@@ -1,5 +1,6 @@
 import { completeGoogleCalendarConnection } from "@/lib/calendar/repository";
 import { googleConfig } from "@/lib/calendar/google";
+import { authorizeRoute, unauthorizedResponse } from "@/lib/auth/server";
 
 export const runtime = "nodejs";
 
@@ -22,6 +23,7 @@ function redirectToSettings(request: Request, parameters: Record<string, string>
 }
 
 export async function GET(request: Request) {
+  if (!(await authorizeRoute(request))) return unauthorizedResponse();
   const input = new URL(request.url).searchParams;
   const code = input.get("code");
   const state = input.get("state");

@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { authorizeRoute, unauthorizedResponse } from "@/lib/auth/server";
 import { sqlite } from "@/lib/db";
 import { createImport } from "@/lib/resume-import/storage";
 import { MAX_TEXT } from "@/lib/resume-import/extraction";
@@ -7,6 +8,7 @@ import { MAX_FILE_BYTES, readResumeFile } from "@/lib/resume-import/file-reader"
 export const runtime = "nodejs";
 const headers = { "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff" };
 export async function POST(request: Request) {
+  if (!(await authorizeRoute(request))) return unauthorizedResponse();
   if (request.headers.get("origin") !== new URL(request.url).origin) return Response.json({ message: "Open resume import in Headhunter to continue." }, { status: 403, headers });
   const chunks: Uint8Array[] = []; let size = 0;
   const reader = request.body?.getReader();

@@ -17,7 +17,10 @@ import {
   Settings,
   SlidersHorizontal,
   UserRound,
+  LogOut,
 } from "lucide-react";
+
+import { logoutAction } from "@/app/(workspace)/auth-actions";
 
 import {
   Sidebar,
@@ -56,7 +59,7 @@ function BrandMark() {
   );
 }
 
-export function WorkspaceSidebar() {
+export function WorkspaceSidebar({ hosted = false }: { hosted?: boolean }) {
   const pathname = usePathname();
 
   return (
@@ -115,6 +118,16 @@ export function WorkspaceSidebar() {
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
+          {hosted ? (
+            <SidebarMenuItem>
+              <form action={logoutAction}>
+                <SidebarMenuButton type="submit" tooltip="Sign out">
+                  <LogOut />
+                  <span className="group-data-[collapsible=icon]:hidden">Sign out</span>
+                </SidebarMenuButton>
+              </form>
+            </SidebarMenuItem>
+          ) : null}
           <SidebarMenuItem>
             <SidebarMenuButton aria-disabled="true" size="lg" tooltip="Kash">
               <span className="grid size-8 shrink-0 place-items-center rounded-full bg-foreground text-xs font-semibold text-background">

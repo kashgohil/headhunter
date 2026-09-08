@@ -1,8 +1,10 @@
 import { beginGoogleCalendarConnection } from "@/lib/calendar/repository";
+import { authorizeRoute, unauthorizedResponse } from "@/lib/auth/server";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(request: Request) {
+  if (!(await authorizeRoute(request))) return unauthorizedResponse();
   try {
     const response = Response.redirect(beginGoogleCalendarConnection(), 307);
     response.headers.set("Cache-Control", "private, no-store");
