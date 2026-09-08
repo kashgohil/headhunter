@@ -10,6 +10,7 @@ import { ActionForm, FormSelect } from "@/components/action-form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Disclosure } from "@/components/ui/accordion";
 import { PlanFields } from "../plan-fields";
 import {
   saveDebriefAction,
@@ -48,10 +49,22 @@ export default async function InterviewPage({
         </time>
         {data.calendarLink ? (
           <div className="mt-4 max-w-xl rounded-md border bg-muted/35 px-4 py-3 text-sm">
-            <p className="font-medium">Linked to {data.calendarLink.calendarName}</p>
+            <p className="font-medium">
+              Linked to {data.calendarLink.calendarName}
+            </p>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              {new Intl.DateTimeFormat("en", { year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: data.calendarLink.event.timeZone, timeZoneName: "short" }).format(data.calendarLink.event.startAt)}
-              {data.calendarLink.lastSuccessAt ? ` · synced ${data.calendarLink.lastSuccessAt.toISOString().slice(0, 16).replace("T", " ")} UTC` : " · awaiting first sync"}
+              {new Intl.DateTimeFormat("en", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+                timeZone: data.calendarLink.event.timeZone,
+                timeZoneName: "short",
+              }).format(data.calendarLink.event.startAt)}
+              {data.calendarLink.lastSuccessAt
+                ? ` · synced ${data.calendarLink.lastSuccessAt.toISOString().slice(0, 16).replace("T", " ")} UTC`
+                : " · awaiting first sync"}
             </p>
           </div>
         ) : null}
@@ -175,10 +188,11 @@ export default async function InterviewPage({
                 </li>
               ))}
             </ol>
-            <details className="mt-5 rounded-lg border bg-card p-5">
-              <summary className="cursor-pointer font-semibold">
-                Record a mock session
-              </summary>
+            <Disclosure
+              className="mt-5 rounded-lg border bg-card px-5"
+              triggerClassName="font-semibold"
+              title="Record a mock session"
+            >
               <p className="my-4 text-sm text-muted-foreground">
                 Answer aloud, then paste notes or a transcript. Scores are your
                 self-review, not an automated assessment.
@@ -238,13 +252,14 @@ export default async function InterviewPage({
                   />
                 </div>
               </ActionForm>
-            </details>
+            </Disclosure>
             {data.sessions.map((session) => (
-              <details key={session.id} className="mt-4 rounded-lg border p-5">
-                <summary className="cursor-pointer text-sm font-medium">
-                  Practice · {session.createdAt.toISOString().slice(0, 10)} ·{" "}
-                  {session.prompt}
-                </summary>
+              <Disclosure
+                key={session.id}
+                className="mt-4 rounded-lg border px-5"
+                triggerClassName="text-sm font-medium"
+                title={`Practice · ${session.createdAt.toISOString().slice(0, 10)} · ${session.prompt}`}
+              >
                 <p className="mt-3 whitespace-pre-wrap text-sm">
                   {session.response}
                 </p>
@@ -261,7 +276,7 @@ export default async function InterviewPage({
                 <p className="mt-3 text-sm">
                   Next practice: {session.nextPractice}
                 </p>
-              </details>
+              </Disclosure>
             ))}
           </section>
           <section
@@ -335,10 +350,16 @@ export default async function InterviewPage({
                 { label: "People", value: plan?.interviewers },
                 { label: "Objectives", value: plan?.objectives },
                 { label: "Logistics & commitments", value: plan?.commitments },
-                { label: "Study plan", value: plan?.studyPlan || `Suggested:\n${guide.steps.join("\n")}` },
+                {
+                  label: "Study plan",
+                  value:
+                    plan?.studyPlan || `Suggested:\n${guide.steps.join("\n")}`,
+                },
                 {
                   label: "Questions to ask",
-                  value: plan?.questionsForInterviewer || `Suggested:\n${guide.questions.join("\n")}`,
+                  value:
+                    plan?.questionsForInterviewer ||
+                    `Suggested:\n${guide.questions.join("\n")}`,
                 },
               ].map((item) => (
                 <div key={item.label}>
@@ -355,16 +376,17 @@ export default async function InterviewPage({
               team’s needs.
             </p>
           </section>
-          <details className="rounded-lg border bg-card p-5">
-            <summary className="cursor-pointer font-semibold">
-              Edit round & preparation plan
-            </summary>
+          <Disclosure
+            className="rounded-lg border bg-card px-5"
+            triggerClassName="font-semibold"
+            title="Edit round & preparation plan"
+          >
             <div className="mt-5">
               <ActionForm action={saveRoundAction.bind(null, id)}>
                 <PlanFields round={round} plan={plan} />
               </ActionForm>
             </div>
-          </details>
+          </Disclosure>
         </aside>
       </div>
     </div>
