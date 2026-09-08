@@ -16,3 +16,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Use Motion for purposeful React animation. Keep frequent interactions crisp and avoid decorative motion that slows work down.
 - Apply Emil Kowalski's design-engineering principles while building UI and run the animation-review skill before completing motion work.
 - Do not use eyebrow text anywhere, including chip- or badge-shaped eyebrow substitutes above headings. Status badges remain acceptable only when they communicate a real object state in context; never use them as decoration. Avoid ornamental status dots.
+
+## Progress commits
+
+- Commit progress in small, focused chunks as each coherent change is ready and validated. Do not accumulate an entire issue's implementation into one large commit.
+- Split unrelated fixes, tests, and documentation into reviewable commits; keep tests with the behavior they verify when practical.
