@@ -9,6 +9,8 @@ import {
   validateSessionSecret,
   verifyOwnerSession,
 } from "@/lib/auth/session";
+import { sqlite } from "@/lib/db";
+import { ownerSessionExists } from "@/lib/auth/storage";
 
 function hostname(value: string | null) {
   if (!value) return "";
@@ -20,18 +22,30 @@ function hostname(value: string | null) {
 }
 
 export async function hasOwnerAccess() {
+  if (process.env.NEXT_PHASE === "phase-production-build") return true;
   const mode = accessMode();
   if (mode === "local") {
     return isLoopbackHostname(hostname((await headers()).get("host")));
   }
   const secret = validateSessionSecret(process.env.HEADHUNTER_SESSION_SECRET);
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
-  return verifyOwnerSession(token, secret) !== null;
+  const session = verifyOwnerSession(token, secret);
+  return session !== null && ownerSessionExists(sqlite, session.sid);
 }
 
 export async function requireOwner() {
-  if (!(await hasOwnerAccess())) redirect("/login");
-  return { id: "owner" as const };
+  if (process.env.NEXT_PHASE === "phase-production-build") {
+    return { id: "owner" as const, sessionId: null };
+  }
+  if (accessMode() === "local") {
+    if (!(await hasOwnerAccess())) redirect("/login");
+    return { id: "owner" as const, sessionId: null };
+  }
+  const secret = validateSessionSecret(process.env.HEADHUNTER_SESSION_SECRET);
+  const token = (await cookies()).get(SESSION_COOKIE)?.value;
+  const session = verifyOwnerSession(token, secret);
+  if (!session || !ownerSessionExists(sqlite, session.sid)) redirect("/login");
+  return { id: "owner" as const, sessionId: session.sid };
 }
 
 export async function authorizeRoute(request: Request) {
@@ -44,7 +58,8 @@ export async function authorizeRoute(request: Request) {
     .map((part) => part.trim())
     .find((part) => part.startsWith(`${SESSION_COOKIE}=`))
     ?.slice(SESSION_COOKIE.length + 1);
-  return verifyOwnerSession(cookie, secret) !== null;
+  const session = verifyOwnerSession(cookie, secret);
+  return session !== null && ownerSessionExists(sqlite, session.sid);
 }
 
 export function unauthorizedResponse() {

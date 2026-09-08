@@ -20,6 +20,7 @@ const privateIntegrationTables = new Set([
   "external_calendar_events",
   "calendar_event_links",
 ]);
+const neverExportedTables = new Set(["owner_sessions"]);
 
 function definitions(database: Database.Database) {
   return database
@@ -35,7 +36,8 @@ export function exportBackup(database: Database.Database, options: { includePriv
     const tables = Object.fromEntries(
       schema.map(({ name }) => [
         name,
-        privateIntegrationTables.has(name) && !options.includePrivateIntegrations
+        neverExportedTables.has(name) ||
+        (privateIntegrationTables.has(name) && !options.includePrivateIntegrations)
           ? []
           : database.prepare(`SELECT * FROM ${quote(name)}`).all() as Row[],
       ]),

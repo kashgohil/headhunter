@@ -29,7 +29,7 @@ export function validateSessionSecret(secret: string | undefined) {
 export function createOwnerSession(
   secret: string,
   now = Date.now(),
-): { expiresAt: Date; token: string } {
+): { expiresAt: Date; sessionId: string; token: string } {
   validateSessionSecret(secret);
   const issuedAt = Math.floor(now / 1000);
   const session: OwnerSession = {
@@ -42,6 +42,7 @@ export function createOwnerSession(
   const payload = encode(JSON.stringify(session));
   return {
     expiresAt: new Date(session.exp * 1000),
+    sessionId: session.sid,
     token: `${payload}.${signature(payload, secret)}`,
   };
 }

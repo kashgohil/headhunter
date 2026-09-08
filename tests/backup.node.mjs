@@ -24,6 +24,11 @@ describe('workspace backup', () => {
       db.prepare("INSERT INTO calendar_connections (id,provider,encrypted_credentials,created_at,updated_at) VALUES ('google','google','encrypted-secret',?,?)").run(Date.now(), Date.now());
       const backup = exportBackup(db);
       assert.deepEqual(backup.tables.calendar_connections, []);
+      assert.deepEqual(backup.tables.owner_sessions, []);
+      assert.deepEqual(
+        exportBackup(db, { includePrivateIntegrations: true }).tables.owner_sessions,
+        [],
+      );
       assert.equal(exportBackup(db, { includePrivateIntegrations: true }).tables.calendar_connections[0].encrypted_credentials, 'encrypted-secret');
       restoreBackup(db, backup);
       assert.deepEqual(exportBackup(db).tables, backup.tables);

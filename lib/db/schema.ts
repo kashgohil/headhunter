@@ -1,6 +1,12 @@
 import { sql } from "drizzle-orm";
 import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
+export const ownerSessions = sqliteTable("owner_sessions", {
+  id: text("id").primaryKey(),
+  expiresAt: integer("expires_at").notNull(),
+  createdAt: integer("created_at").notNull(),
+}, (table) => [index("owner_session_expiry_idx").on(table.expiresAt)]);
+
 export const jobs = sqliteTable("jobs", {
   id: text("id").primaryKey(),
   title: text("title").notNull(),
