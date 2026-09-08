@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { LockKeyhole } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { accessMode } from "@/lib/auth/config";
 import { loginAction } from "./actions";
@@ -12,6 +13,7 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ error?: string; next?: string }>;
 }) {
+  await connection();
   if (accessMode() !== "hosted") redirect("/");
   const query = await searchParams;
   const next = query.next && /^\/(?!\/)/.test(query.next) ? query.next : "/";
@@ -23,7 +25,7 @@ export default async function LoginPage({
             <LockKeyhole className="size-5" aria-hidden="true" />
           </span>
           <div>
-            <CardTitle className="text-2xl tracking-tight">Open your workspace</CardTitle>
+            <h1 className="text-2xl font-semibold tracking-tight">Open your workspace</h1>
             <CardDescription className="mt-2 leading-relaxed">
               Enter the owner password. This private workspace has one account.
             </CardDescription>

@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 
 import { WorkspaceSidebar } from "@/app/_components/workspace-sidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -6,6 +7,7 @@ import { accessMode } from "@/lib/auth/config";
 import { requireOwner } from "@/lib/auth/server";
 
 export default async function WorkspaceLayout({ children }: { children: React.ReactNode }) {
+  await connection();
   await requireOwner();
   const cookieStore = await cookies();
   const defaultOpen = cookieStore.get("sidebar_state")?.value !== "false";

@@ -1,9 +1,13 @@
 import { scrypt as scryptCallback, randomBytes } from "node:crypto";
 import { promisify } from "node:util";
 
-const password = process.argv[2];
+const password = process.argv[2]
+  ? ""
+  : (await Bun.stdin.text()).replace(/\r?\n$/, "");
 if (!password || password.length < 14) {
-  process.stderr.write("Usage: bun scripts/hash-owner-password.mjs '<14+ character password>'\n");
+  process.stderr.write(
+    "Pipe a password of at least 14 characters on standard input; command-line arguments are refused.\n",
+  );
   process.exit(1);
 }
 const salt = randomBytes(16);

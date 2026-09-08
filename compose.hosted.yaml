@@ -1,0 +1,26 @@
+services:
+  headhunter:
+    build: .
+    restart: unless-stopped
+    init: true
+    ports:
+      - "127.0.0.1:3050:3050"
+    environment:
+      APP_ORIGIN: ${APP_ORIGIN:?Set the public HTTPS origin}
+      CALENDAR_TOKEN_KEY: ${CALENDAR_TOKEN_KEY:-}
+      DATABASE_FILE: headhunter.db
+      GOOGLE_CALENDAR_CLIENT_ID: ${GOOGLE_CALENDAR_CLIENT_ID:-}
+      GOOGLE_CALENDAR_CLIENT_SECRET: ${GOOGLE_CALENDAR_CLIENT_SECRET:-}
+      HEADHUNTER_ACCESS_MODE: hosted
+      HEADHUNTER_BACKUP_KEY: ${HEADHUNTER_BACKUP_KEY:?Set a 32-byte backup key}
+      HEADHUNTER_DATA_DIR: /data
+      HEADHUNTER_OWNER_PASSWORD_HASH: ${HEADHUNTER_OWNER_PASSWORD_HASH:?Set the generated password hash}
+      HEADHUNTER_PERSISTENT_STORAGE: ${HEADHUNTER_PERSISTENT_STORAGE:?Attest persistent storage}
+      HEADHUNTER_SESSION_SECRET: ${HEADHUNTER_SESSION_SECRET:?Set a random session secret}
+      HEADHUNTER_STORAGE_ENCRYPTED: ${HEADHUNTER_STORAGE_ENCRYPTED:?Attest encrypted storage}
+    volumes:
+      - ${HEADHUNTER_DATA_PATH:?Set the encrypted host data directory}:/data
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true

@@ -10,12 +10,12 @@ import * as schema from "@/lib/db/schema";
 import { prepareStorage, protectSqliteFiles } from "@/lib/storage/config";
 
 const building = process.env.NEXT_PHASE === PHASE_PRODUCTION_BUILD;
-const { database: resolvedPath } = prepareStorage({ building });
+const resolvedPath = building ? ":memory:" : prepareStorage().database;
 
 export const sqlite = new Database(resolvedPath);
-sqlite.pragma("journal_mode = WAL");
+sqlite.pragma(`journal_mode = ${building ? "MEMORY" : "WAL"}`);
 sqlite.pragma("foreign_keys = ON");
-protectSqliteFiles(resolvedPath);
+if (!building) protectSqliteFiles(resolvedPath);
 
 export const db = drizzle(sqlite, { schema });
 

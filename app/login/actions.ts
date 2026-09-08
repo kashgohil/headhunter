@@ -18,11 +18,15 @@ export async function loginAction(formData: FormData) {
   if (accessMode() !== "hosted") redirect("/");
   const password = formData.get("password");
   const next = formData.get("next");
+  const destination =
+    typeof next === "string" && /^\/(?!\/)/.test(next) ? next : "/";
   if (
     typeof password !== "string" ||
     !(await verifyOwnerPassword(password, process.env.HEADHUNTER_OWNER_PASSWORD_HASH))
   ) {
-    redirect("/login?error=1");
+    const login = new URLSearchParams({ error: "1" });
+    if (destination !== "/") login.set("next", destination);
+    redirect(`/login?${login}`);
   }
   const session = createOwnerSession(
     validateSessionSecret(process.env.HEADHUNTER_SESSION_SECRET),
@@ -36,7 +40,5 @@ export async function loginAction(formData: FormData) {
     sameSite: "lax",
     secure: true,
   });
-  const destination =
-    typeof next === "string" && /^\/(?!\/)/.test(next) ? next : "/";
   redirect(destination);
 }
