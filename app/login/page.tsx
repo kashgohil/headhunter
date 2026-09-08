@@ -48,7 +48,9 @@ export default async function LoginPage({
               />
               {query.error ? (
                 <p id="login-error" className="text-sm text-destructive">
-                  That password did not match. Try again.
+                  {query.error === "rate"
+                    ? "Too many attempts. Wait 15 minutes before trying again."
+                    : "That password did not match. Try again."}
                 </p>
               ) : null}
             </div>

@@ -2,6 +2,12 @@ import { describe, expect, test } from "bun:test";
 import { accessMode, configuredOrigin, isLoopbackHostname } from "@/lib/auth/config";
 import { hashOwnerPassword, verifyOwnerPassword } from "@/lib/auth/password";
 import {
+  beginLoginAttempt,
+  clearLoginAttempts,
+  loginAttemptKey,
+  resetLoginAttemptsForTests,
+} from "@/lib/auth/rate-limit";
+import {
   createOwnerSession,
   SESSION_DURATION_SECONDS,
   verifyOwnerSession,
@@ -46,5 +52,18 @@ describe("hosted access primitives", () => {
     expect(encoded).not.toContain("a long private passphrase");
     expect(await verifyOwnerPassword("a long private passphrase", encoded)).toBe(true);
     expect(await verifyOwnerPassword("wrong password", encoded)).toBe(false);
+  });
+
+  test("bounds password attempts per reverse-proxy client window", () => {
+    resetLoginAttemptsForTests();
+    const key = loginAttemptKey("198.51.100.1, 127.0.0.1", "jobs.example.com");
+    expect(key).toBe("127.0.0.1");
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      expect(beginLoginAttempt(key, 1000)).toBe(true);
+    }
+    expect(beginLoginAttempt(key, 1000)).toBe(false);
+    expect(beginLoginAttempt(key, 1000 + 15 * 60 * 1000)).toBe(true);
+    clearLoginAttempts(key);
+    expect(beginLoginAttempt(key, 1001)).toBe(true);
   });
 });

@@ -14,7 +14,7 @@ Local mode has no login, but the request proxy refuses non-loopback hostnames. P
 
 Owner sessions expire twelve hours after login. The signed cookie is `HttpOnly`, `Secure`, `SameSite=Lax`, path-scoped to `/`, and contains a random session identifier rather than private workspace data. Its digest and expiry are stored in SQLite. Logout deletes that record and the browser cookie; session-secret rotation invalidates every outstanding cookie. `Lax` is required so the authenticated owner can return from the Google OAuth top-level redirect.
 
-The request proxy validates signed cookies, the canonical host and forwarded HTTPS protocol, and exact mutation origins. The protected workspace layout validates authorization at request time, every Server Action repeats the owner check, and every private route handler checks the live server-side session. Unauthenticated page reads redirect to login; private APIs return `401`; wrong hosts and cross-origin mutations return `403`. The health endpoint is the only public API and returns only `ready` or `unavailable`.
+The request proxy validates signed cookies, the canonical host and forwarded HTTPS protocol, and exact mutation origins. The protected workspace layout validates authorization at request time, every Server Action repeats the owner check, and every private route handler checks the live server-side session. Login permits five attempts per client address in each fifteen-minute window; Caddy is the trusted source of that address because the application listener is host-loopback only. Unauthenticated page reads redirect to login; private APIs return `401`; wrong hosts and cross-origin mutations return `403`. The health endpoint is the only public API and returns only `ready` or `unavailable`.
 
 ## Secrets
 
