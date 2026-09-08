@@ -16,6 +16,7 @@ import {
   saveContactLinkAction,
 } from "../actions";
 import { DraftEditor } from "../draft-editor";
+import { formatDisplayDate } from "@/lib/date";
 
 export default async function ContactPage({
   params,
@@ -180,11 +181,7 @@ export default async function ContactPage({
                   <p className="text-sm whitespace-pre-wrap">{item.summary}</p>
                   <p className="mt-2 text-xs text-muted-foreground">
                     {item.direction} · {item.channel} ·{" "}
-                    {item.occurredAt
-                      .toISOString()
-                      .slice(0, 16)
-                      .replace("T", " ")}{" "}
-                    UTC
+                    {formatDisplayDate(item.occurredAt)}
                   </p>
                   {item.jobId ? (
                     <Link

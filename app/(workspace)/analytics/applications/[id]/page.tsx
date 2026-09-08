@@ -6,6 +6,7 @@ import { getAnalyticsInput } from "@/lib/analytics/repository";
 import { listAnnotations } from "@/lib/analytics/storage";
 import { segmentLabels, segmentKeys } from "@/lib/analytics/segments";
 import { AnnotationForm } from "../../forms";
+import { formatDisplayDate } from "@/lib/date";
 export default async function ApplicationAnalyticsPage({
   params,
 }: {
@@ -27,7 +28,7 @@ export default async function ApplicationAnalyticsPage({
       <p className="mt-2 text-muted-foreground">
         {job.company} ·{" "}
         {job.appliedAt
-          ? `Applied ${job.appliedAt.toISOString().slice(0, 10)} UTC`
+          ? `Applied ${formatDisplayDate(job.appliedAt)}`
           : "No recorded application"}
       </p>
       <Link

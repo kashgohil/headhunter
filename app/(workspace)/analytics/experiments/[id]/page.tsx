@@ -11,6 +11,7 @@ import {
 } from "@/lib/analytics/segments";
 import { Badge } from "@/components/ui/badge";
 import { Disclosure } from "@/components/ui/accordion";
+import { formatDisplayDate } from "@/lib/date";
 import { ExperimentEditor } from "../../forms";
 export default async function ExperimentPage({
   params,
@@ -66,15 +67,11 @@ export default async function ExperimentPage({
           {experiment.result ? "Saved results" : "Observed results"}
         </h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Applications from {plan.startDate} through {plan.endDate} UTC. Each
-          application gets {plan.observationDays} days to reach{" "}
+          Applications from {formatDisplayDate(plan.startDate)} through{" "}
+          {formatDisplayDate(plan.endDate)}. Each application gets{" "}
+          {plan.observationDays} days to reach{" "}
           {outcomeLabels[plan.outcome].toLowerCase()}; later events are
-          excluded. Observed at{" "}
-          {new Date(result.generatedAt)
-            .toISOString()
-            .replace("T", " ")
-            .slice(0, 19)}{" "}
-          UTC.
+          excluded. Observed {formatDisplayDate(result.generatedAt)}.
         </p>
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           {result.arms.map((arm) => (

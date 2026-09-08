@@ -4,6 +4,7 @@ import { connection } from "next/server";
 import { sqlite } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { BackupControls } from "./backup-controls";
+import { formatDisplayDate } from "@/lib/date";
 import { accessMode } from "@/lib/auth/config";
 import { storagePaths } from "@/lib/storage/config";
 
@@ -15,9 +16,7 @@ export default async function DataSettingsPage({
   await connection();
   const hosted = accessMode() === "hosted";
   const query = await searchParams;
-  const recoveryFiles = await readdir(
-    storagePaths().recovery,
-  )
+  const recoveryFiles = await readdir(storagePaths().recovery)
     .then((files) =>
       files
         .filter((name) =>
@@ -123,8 +122,7 @@ export default async function DataSettingsPage({
                 </Link>
               ) : null}
               <time className="mt-2 block font-mono text-xs text-muted-foreground">
-                {new Date(row.at).toISOString().replace("T", " ").slice(0, 19)}{" "}
-                UTC
+                {formatDisplayDate(row.at)}
               </time>
             </li>
           ))}

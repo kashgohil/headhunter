@@ -5,6 +5,7 @@ import { listInterviews } from "@/lib/interviews/repository";
 import { ActionForm, FormSelect } from "@/components/action-form";
 import { Badge } from "@/components/ui/badge";
 import { Disclosure } from "@/components/ui/accordion";
+import { formatDisplayDate } from "@/lib/date";
 import { saveRoundAction } from "./actions";
 import { PlanFields } from "./plan-fields";
 
@@ -41,11 +42,7 @@ export default async function InterviewsPage() {
                   {company} · {title}
                 </p>
                 <time className="mt-2 block font-mono text-xs text-muted-foreground">
-                  {round.scheduledAt
-                    .toISOString()
-                    .slice(0, 16)
-                    .replace("T", " ")}{" "}
-                  UTC
+                  {formatDisplayDate(round.scheduledAt)}
                 </time>
                 <Link
                   className="mt-3 block text-sm text-primary"

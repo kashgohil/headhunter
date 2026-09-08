@@ -7,6 +7,7 @@ import type { ReviewSource } from "@/lib/weekly-review/model";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Disclosure } from "@/components/ui/accordion";
+import { formatDisplayDate } from "@/lib/date";
 import { ReviewEditor } from "./review-editor";
 export const metadata = { title: "Weekly review" };
 function SourceList({ items }: { items: ReviewSource[] }) {
@@ -52,7 +53,7 @@ export default async function WeeklyReviewPage({
       id: item.key,
       label: `${item.title} · ${item.source}`,
       href: item.href,
-      detail: `${item.reason}${item.dueAt ? ` Due ${item.dueAt.slice(0, 10)} UTC.` : ""}`,
+      detail: `${item.reason}${item.dueAt ? ` Due ${formatDisplayDate(item.dueAt)}.` : ""}`,
     }));
   return (
     <div className="mx-auto w-full max-w-5xl px-5 py-8 sm:px-8 lg:py-10">
@@ -62,16 +63,16 @@ export default async function WeeklyReviewPage({
       <header className="border-b pb-7">
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-3xl font-semibold tracking-tight">
-            Week of {snapshot.weekStart}
+            Week of {formatDisplayDate(snapshot.weekStart)}
           </h1>
           <Badge variant={review.status === "reviewed" ? "signal" : "outline"}>
             {review.status === "reviewed" ? "Reviewed" : "Draft"}
           </Badge>
         </div>
         <p className="mt-3 text-sm leading-6 text-muted-foreground">
-          {snapshot.weekStart} 00:00 through {snapshot.weekEnd} 00:00 UTC (end
-          excluded). Snapshot created{" "}
-          {snapshot.generatedAt.replace("T", " ").slice(0, 16)} UTC.
+          {formatDisplayDate(snapshot.weekStart)} through{" "}
+          {formatDisplayDate(snapshot.weekEnd)} (end excluded). Snapshot created{" "}
+          {formatDisplayDate(snapshot.generatedAt)}.
         </p>
       </header>
       <section className="mt-8" aria-labelledby="facts-heading">
@@ -146,9 +147,9 @@ export default async function WeeklyReviewPage({
         </h2>
         <p className="text-sm leading-6 text-muted-foreground">
           These are current reminders captured on{" "}
-          {snapshot.generatedAt.slice(0, 10)}, including snoozed and dismissed
-          work. They describe what needs attention now, not what was necessarily
-          overdue during the reviewed week.
+          {formatDisplayDate(snapshot.generatedAt)}, including snoozed and
+          dismissed work. They describe what needs attention now, not what was
+          necessarily overdue during the reviewed week.
         </p>
         {[
           { label: "Stalled opportunities", items: stalled },

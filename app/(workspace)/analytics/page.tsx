@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Disclosure } from "@/components/ui/accordion";
 import { FormSelect } from "@/components/action-form";
 import { ExperimentForm } from "./forms";
+import { formatDisplayDate } from "@/lib/date";
 
 export default async function AnalyticsPage({
   searchParams,
@@ -37,7 +38,7 @@ export default async function AnalyticsPage({
   const funnel = calculateFunnel(input, now, days);
   const groups = summarizeSegments(input, now, days, key, outcome);
   const experiments = listExperiments(sqlite);
-  const windowLabel = `${funnel.since?.toISOString().slice(0, 10) ?? "All history"} – ${now.toISOString().slice(0, 10)} UTC`;
+  const windowLabel = `${funnel.since ? formatDisplayDate(funnel.since) : "All history"} – ${formatDisplayDate(now)}`;
   return (
     <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 sm:py-12">
       <header className="border-b pb-8">

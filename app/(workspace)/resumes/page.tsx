@@ -23,12 +23,9 @@ import {
 import { getCareerProfile } from "@/lib/career-profile/repository";
 import { listJobs } from "@/lib/jobs/repository";
 import { listResumeStudio } from "@/lib/resumes/repository";
+import { formatDisplayDate } from "@/lib/date";
 
-const dateFormatter = new Intl.DateTimeFormat("en", {
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-});
+const dateFormatter = { format: formatDisplayDate };
 
 export const metadata = { title: "Resume studio" };
 

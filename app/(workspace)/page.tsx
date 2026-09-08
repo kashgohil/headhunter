@@ -8,20 +8,7 @@ import { AlertControls } from "./command-center/alert-controls";
 import { getCommandCenter } from "@/lib/command-center/repository";
 import type { Alert } from "@/lib/command-center/overview";
 import { isAlertOverdue } from "@/lib/command-center/overview";
-
-const date = new Intl.DateTimeFormat("en", {
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-  timeZone: "UTC",
-});
-const time = new Intl.DateTimeFormat("en", {
-  day: "numeric",
-  month: "short",
-  hour: "numeric",
-  minute: "2-digit",
-  timeZone: "UTC",
-});
+import { formatDisplayDate } from "@/lib/date";
 
 function AlertRow({
   alert,
@@ -66,8 +53,8 @@ function AlertRow({
         {alert.dueAt ? (
           <time dateTime={alert.dueAt} className="mt-2 block font-mono text-xs">
             {alert.kind === "interview"
-              ? `${time.format(new Date(alert.dueAt))} UTC`
-              : date.format(new Date(alert.dueAt))}
+              ? formatDisplayDate(alert.dueAt)
+              : formatDisplayDate(alert.dueAt)}
           </time>
         ) : null}
         <AlertControls alertKey={alert.key} />
@@ -216,8 +203,9 @@ export default async function CommandCenterPage() {
               <CardContent>
                 <h3 className="text-sm font-semibold">Recorded funnel</h3>
                 <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  All time through {date.format(data.now)}. Unique applications
-                  per milestone; expand a count to inspect its sources.
+                  All time through {formatDisplayDate(data.now)}. Unique
+                  applications per milestone; expand a count to inspect its
+                  sources.
                 </p>
                 <div className="mt-4 divide-y">
                   {data.funnel.map((row) => (
@@ -295,7 +283,7 @@ export default async function CommandCenterPage() {
                     {alert.title}
                   </Link>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {alert.source} · {time.format(new Date(alert.dueAt!))} UTC
+                    {alert.source} · {formatDisplayDate(alert.dueAt)}
                   </p>
                 </li>
               ))}
@@ -333,7 +321,7 @@ export default async function CommandCenterPage() {
                     {event.company} · {event.role}
                   </p>
                   <time className="mt-1 block font-mono text-[10px] text-muted-foreground">
-                    {date.format(event.occurredAt)}
+                    {formatDisplayDate(event.occurredAt)}
                   </time>
                 </li>
               ))}

@@ -35,6 +35,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { formatDisplayDate } from "@/lib/date";
 
 type CompanyResearchEntry = {
   id: string;
@@ -68,7 +69,7 @@ const sourceStateLabels = {
   inaccessible: "Inaccessible",
 } as const;
 
-const dateFormatter = new Intl.DateTimeFormat("en", { dateStyle: "medium" });
+const dateFormatter = { format: formatDisplayDate };
 const initialCompanyState: CompanyResearchState = {};
 const initialOpportunityState: OpportunityResearchState = {};
 

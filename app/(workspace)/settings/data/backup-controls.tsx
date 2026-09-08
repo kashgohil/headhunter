@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { formatDisplayDate } from "@/lib/date";
 
 export function BackupControls({
   encrypted = false,
@@ -148,7 +149,7 @@ export function BackupControls({
         {preview ? (
           <div className="mt-5 rounded-lg border p-5">
             <h3 className="font-medium">
-              Backup from {new Date(preview.exportedAt).toLocaleString()}
+              Backup from {formatDisplayDate(preview.exportedAt)}
             </h3>
             <p className="mt-2 text-sm text-muted-foreground">
               {preview.counts.reduce((sum, item) => sum + item.records, 0)}{" "}

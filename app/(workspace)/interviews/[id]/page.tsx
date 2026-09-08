@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Disclosure } from "@/components/ui/accordion";
+import { formatDisplayDate } from "@/lib/date";
 import { PlanFields } from "../plan-fields";
 import {
   saveDebriefAction,
@@ -45,7 +46,7 @@ export default async function InterviewPage({
           {job.company} · {job.title}
         </p>
         <time className="mt-3 block font-mono text-sm">
-          {round.scheduledAt.toISOString().slice(0, 16).replace("T", " ")} UTC
+          {formatDisplayDate(round.scheduledAt)}
         </time>
         {data.calendarLink ? (
           <div className="mt-4 max-w-xl rounded-md border bg-muted/35 px-4 py-3 text-sm">
@@ -53,17 +54,9 @@ export default async function InterviewPage({
               Linked to {data.calendarLink.calendarName}
             </p>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              {new Intl.DateTimeFormat("en", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
-                timeZone: data.calendarLink.event.timeZone,
-                timeZoneName: "short",
-              }).format(data.calendarLink.event.startAt)}
+              {formatDisplayDate(data.calendarLink.event.startAt)}
               {data.calendarLink.lastSuccessAt
-                ? ` · synced ${data.calendarLink.lastSuccessAt.toISOString().slice(0, 16).replace("T", " ")} UTC`
+                ? ` · synced ${formatDisplayDate(data.calendarLink.lastSuccessAt)}`
                 : " · awaiting first sync"}
             </p>
           </div>
@@ -258,7 +251,7 @@ export default async function InterviewPage({
                 key={session.id}
                 className="mt-4 rounded-lg border px-5"
                 triggerClassName="text-sm font-medium"
-                title={`Practice · ${session.createdAt.toISOString().slice(0, 10)} · ${session.prompt}`}
+                title={`Practice · ${formatDisplayDate(session.createdAt)} · ${session.prompt}`}
               >
                 <p className="mt-3 whitespace-pre-wrap text-sm">
                   {session.response}

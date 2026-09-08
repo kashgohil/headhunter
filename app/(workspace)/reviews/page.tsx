@@ -5,6 +5,7 @@ import { lastCompletedWeek } from "@/lib/weekly-review/model";
 import { ActionForm } from "@/components/action-form";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Badge } from "@/components/ui/badge";
+import { formatDisplayDate } from "@/lib/date";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { createReviewAction } from "./actions";
@@ -97,12 +98,7 @@ export default async function ReviewsPage({
                     </Badge>
                   </div>
                   <p className="mt-2 text-xs text-muted-foreground">
-                    Saved{" "}
-                    {new Date(row.updated_at)
-                      .toISOString()
-                      .replace("T", " ")
-                      .slice(0, 16)}{" "}
-                    UTC
+                    Saved {formatDisplayDate(row.updated_at)}
                   </p>
                 </li>
               ))}
