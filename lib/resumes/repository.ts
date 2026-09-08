@@ -246,11 +246,13 @@ export async function reviewSection(resumeId: string, section: string, decision:
   const lock = await db.select().from(resumeSectionLocks).where(and(eq(resumeSectionLocks.tailoredResumeId, resumeId), eq(resumeSectionLocks.section, section))).get();
   if (lock?.locked) throw new Error("Unlock this section before reviewing it.");
   if (section === "experience") db.transaction(tx => {
+    const now = new Date();
     const edits = tx.select({id:resumeBulletEdits.id}).from(resumeBulletEdits).where(and(eq(resumeBulletEdits.tailoredResumeId,resumeId),eq(resumeBulletEdits.locked,false))).all();
     for (const edit of edits) {
-      tx.update(resumeBulletEdits).set({decision,updatedAt:new Date()}).where(eq(resumeBulletEdits.id,edit.id)).run();
-      tx.insert(auditEvents).values({id:crypto.randomUUID(),action:"resume_edit.reviewed",entityType:"resume_edit",entityId:edit.id,occurredAt:new Date()}).run();
+      tx.update(resumeBulletEdits).set({decision,updatedAt:now}).where(eq(resumeBulletEdits.id,edit.id)).run();
+      tx.insert(auditEvents).values({id:crypto.randomUUID(),action:"resume_edit.reviewed",entityType:"resume_edit",entityId:edit.id,occurredAt:now}).run();
     }
+    tx.update(tailoredResumes).set({ updatedAt: now }).where(eq(tailoredResumes.id, resumeId)).run();
   });
 }
 
