@@ -10,7 +10,8 @@
     "test": "bun test && bun run test:storage",
     "test:storage": "node --test tests/*.node.mjs",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "auth:hash-password": "bun scripts/hash-owner-password.mjs"
   },
   "dependencies": {
     "@fontsource/noto-sans-devanagari": "^5.3.0",
