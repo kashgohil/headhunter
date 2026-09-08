@@ -1,0 +1,14 @@
+EXPERIENCE
+Senior Engineer | Fixture Labs | Jan 2020 - Present
+- Built a workflow system with TypeScript.
+
+SKILLS
+TypeScript, React
+
+EDUCATION
+BSc Computing | Fixture University
+Studied distributed systems.
+
+PROJECTS
+Request tracker
+Built a local request tracker.

@@ -33,3 +33,11 @@ describe('local resume document readers',()=>{
   await assert.rejects(readResumeFile(docx('x'.repeat(4*1024*1024+1)),'x.docx'),/expands beyond/);
  });
 });
+
+it('handles real DOCX, encrypted PDF and image-only PDF fixtures', async () => {
+ const fixture = name => readFileSync(new URL(`./fixtures/resume-import/${name}`, import.meta.url));
+ const result = await readResumeFile(fixture('resume.docx'), 'resume.docx');
+ assert.equal(result.text.trim(), fixture('resume.txt').toString().trim());
+ await assert.rejects(readResumeFile(fixture('encrypted.pdf'), 'encrypted.pdf'), /password|encrypted/i);
+ await assert.rejects(readResumeFile(fixture('image-only.pdf'), 'image-only.pdf'), /No readable text/);
+});
