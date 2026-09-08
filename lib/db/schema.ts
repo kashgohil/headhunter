@@ -346,6 +346,13 @@ export const auditEvents = sqliteTable("audit_events", {
   id: text("id").primaryKey(),
   action: text("action", { enum: [
     "workspace.restored",
+    "resume_import.created",
+    "resume_import.retried",
+    "resume_import.proposal_added",
+    "resume_import.edited",
+    "resume_import.approved",
+    "resume_import.rejected",
+    "resume_import.deleted",
     "notifications.updated",
     "analytics.annotated",
     "experiment.created",

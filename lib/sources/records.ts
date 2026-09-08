@@ -75,3 +75,7 @@ export function sourceValue(
   }
   return String(value);
 }
+
+export function getEvidenceImport(database: Database.Database, evidenceId: string) {
+  return database.prepare("SELECT i.id,i.name,p.source_quote AS excerpt FROM resume_import_proposals p JOIN resume_imports i ON i.id=p.import_id WHERE p.evidence_id=? AND p.state='approved' LIMIT 1").get(evidenceId) as { id: string; name: string; excerpt: string } | undefined;
+}

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { sqlite } from "@/lib/db";
-import { getSourceRecord, sourceValue } from "@/lib/sources/records";
+import { getSourceRecord, getEvidenceImport, sourceValue } from "@/lib/sources/records";
 import { Badge } from "@/components/ui/badge";
 export const metadata = { title: "Factual source" };
 export default async function SourcePage({
@@ -15,6 +15,7 @@ export default async function SourcePage({
   const source = getSourceRecord(sqlite, kind, id);
   if (!source) notFound();
   const { record, table } = source;
+  const importedSource = kind === "evidence" ? getEvidenceImport(sqlite, id) : undefined;
   const title = String(
     record.title ??
       record.question ??
@@ -70,6 +71,7 @@ export default async function SourcePage({
           This entry is an inference, not a verified fact.
         </p>
       ) : null}
+      {importedSource ? <section className="mt-5 rounded-lg border p-4"><h2 className="text-sm font-semibold">Original resume excerpt</h2><blockquote className="mt-2 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{importedSource.excerpt}</blockquote><Link href={`/career-profile/import/${importedSource.id}`} className="mt-3 inline-block text-sm underline underline-offset-4">Review {importedSource.name}</Link><p className="mt-2 text-xs text-muted-foreground">This is the imported excerpt. Your approved fact may include corrections made during review.</p></section> : null}
       <dl className="mt-8 divide-y border-y">
         {Object.entries(record)
           .filter(([key]) => !omitted.has(key))

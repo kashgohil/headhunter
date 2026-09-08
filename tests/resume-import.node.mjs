@@ -4,6 +4,8 @@ import { readFileSync } from 'node:fs';
 import Database from 'better-sqlite3';
 import { createImport, getImport, reviewProposal, retryExtraction, addProposal, deleteImport, findMatches } from '../lib/resume-import/storage.ts';
 import { extractProposals } from '../lib/resume-import/extraction.ts';
+import { searchWorkspace } from '../lib/search/query.ts';
+import { getEvidenceImport } from '../lib/sources/records.ts';
 import { exportBackup, restoreBackup } from '../lib/data-transfer/backup.ts';
 const source = `EXPERIENCE
 Senior Engineer | Fixture Labs | Jan 2020 - Present
@@ -82,6 +84,8 @@ describe('resume import review',()=>{
    const id=create(db);const p=getImport(db,id).proposals.find(p=>p.kind==='experience');reviewProposal(db,p.id,0,'approve',p.fields);
    assert.throws(()=>db.prepare('update resume_import_proposals set source_quote=? where id=?').run('changed',p.id));
    assert.throws(()=>db.prepare('update resume_imports set source_text=? where id=?').run('changed',id));
+   assert.equal(searchWorkspace(db,'Synthetic resume').results.some(r=>r.href===`/career-profile/import/${id}`),true);
+   const linked=getEvidenceImport(db,getImport(db,id).proposals.find(p=>p.kind==='experience').evidenceId);assert.equal(linked.id,id);assert.equal(linked.excerpt,p.sourceQuote);
    const before=getImport(db,id);restoreBackup(db,exportBackup(db));assert.deepEqual(getImport(db,id),before);
    deleteImport(db,id);assert.equal(getImport(db,id),null);assert.equal(db.prepare('select count(*) n from career_experiences').get().n,1);
   }finally{db.close();}
