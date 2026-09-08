@@ -91,6 +91,8 @@ Add experience -> link a structured achievement -> add contextual skills
 
 Resume import now populates these records through local PDF/DOCX/text extraction and explicit fact-by-fact approval. Imports preserve recovered source, editable proposals, review decisions, and provenance without changing career evidence until approval. See [resume import](resume-import.md) for processing limits, duplicate safeguards, and recovery. AI extraction remains deferred.
 
+Base resume labels remain private workspace metadata. Employer-facing candidate identity is stored separately, copied into each tailored draft for correction, and frozen in its submitted snapshot. Preview and download use the same PDF route. Export embeds subsetted Noto fonts and measures mixed Latin/Devanagari runs before pagination; unsupported glyphs fail explicitly instead of being transliterated or replaced. See [ISSUE-286 validation](issue-286-validation.md).
+
 ## Fourth vertical slice
 
 Explainable fit turns a captured job into an inspectable decision aid:
