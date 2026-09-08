@@ -68,11 +68,11 @@ export function MonthPicker({
       </PopoverTrigger>
       <PopoverContent className="w-56 p-3" align="start">
         <div className="flex items-center justify-between pb-2">
-          <Button type="button" variant="ghost" size="icon" className="size-7" onClick={() => setViewYear((year) => year - 1)}>
+          <Button type="button" variant="ghost" size="icon" className="size-7" aria-label="Previous year" onClick={() => setViewYear((year) => year - 1)}>
             <ChevronLeft />
           </Button>
           <span className="text-sm font-medium">{viewYear}</span>
-          <Button type="button" variant="ghost" size="icon" className="size-7" onClick={() => setViewYear((year) => year + 1)}>
+          <Button type="button" variant="ghost" size="icon" className="size-7" aria-label="Next year" onClick={() => setViewYear((year) => year + 1)}>
             <ChevronRight />
           </Button>
         </div>
