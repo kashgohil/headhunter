@@ -52,11 +52,9 @@ describe("resume tailoring", () => {
     expect(candidateIdentitySchema.safeParse({ ...identity, candidateEmail: "not-an-email" }).success).toBe(false);
   });
 
-  test("exports a selectable PDF document", () => {
-    const bytes = createResumePdf({ name: "Kash", roleFamily: "Product", template: "classic", job: { id: "j", title: job.title, company: "Northstar" }, summary: "Product leader", experiences: [], skills: ["Analytics"], profileItems: [], sectionOrder: ["summary", "experience", "projects", "skills", "education"] });
-    const pdf = new TextDecoder().decode(bytes);
-    expect(pdf.startsWith("%PDF-1.4")).toBe(true);
-    expect(pdf).toContain("Product leader");
-    expect(pdf).toContain("/BaseFont /Helvetica");
+  test("exports an embedded-font PDF document", async () => {
+    const bytes = await createResumePdf({ name: "Internal profile", candidate: { name: "Kash", email: "", phone: "", location: "", website: "" }, roleFamily: "Product", template: "classic", job: { id: "j", title: job.title, company: "Northstar" }, summary: "Product leader", experiences: [], skills: ["Analytics"], profileItems: [], sectionOrder: ["summary", "experience", "projects", "skills", "education"] });
+    expect(new TextDecoder().decode(bytes.slice(0, 8))).toStartWith("%PDF-");
+    expect(new TextDecoder().decode(bytes)).toContain("/FontFile");
   });
 });
