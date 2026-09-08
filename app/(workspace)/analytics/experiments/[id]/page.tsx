@@ -10,6 +10,7 @@ import {
   outcomeLabels,
 } from "@/lib/analytics/segments";
 import { Badge } from "@/components/ui/badge";
+import { Disclosure } from "@/components/ui/accordion";
 import { ExperimentEditor } from "../../forms";
 export default async function ExperimentPage({
   params,
@@ -90,10 +91,11 @@ export default async function ExperimentPage({
                 {plan.endDate} UTC · {plan.observationDays}-day outcomes.{" "}
                 {arm.pending} still in the observation period.
               </p>
-              <details className="mt-4 text-sm">
-                <summary className="cursor-pointer">
-                  Inspect mature applications
-                </summary>
+              <Disclosure
+                className="mt-4"
+                triggerClassName="py-0 text-sm"
+                title="Inspect mature applications"
+              >
                 {arm.applications.length ? (
                   <ul className="mt-3 space-y-2">
                     {arm.applications.map((job) => (
@@ -117,7 +119,7 @@ export default async function ExperimentPage({
                     No mature applications in this group.
                   </p>
                 )}
-              </details>
+              </Disclosure>
             </div>
           ))}
         </div>

@@ -6,6 +6,7 @@ import { getSavedReview } from "@/lib/weekly-review/storage";
 import type { ReviewSource } from "@/lib/weekly-review/model";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Disclosure } from "@/components/ui/accordion";
 import { ReviewEditor } from "./review-editor";
 export const metadata = { title: "Weekly review" };
 function SourceList({ items }: { items: ReviewSource[] }) {
@@ -83,56 +84,62 @@ export default async function WeeklyReviewPage({
         </p>
         <div className="mt-5 grid items-start gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {snapshot.metrics.map((metric) => (
-            <details
+            <Disclosure
               key={metric.key}
-              className="min-w-0 rounded-lg border bg-card p-5"
+              className="min-w-0 rounded-lg border bg-card px-5"
+              triggerClassName="block py-5"
+              title={
+                <>
+                  <span className="font-mono text-3xl font-semibold tracking-tight">
+                    {metric.items.length}
+                  </span>
+                  <span className="mt-2 block text-sm font-medium">
+                    {metric.label}
+                  </span>
+                </>
+              }
             >
-              <summary className="cursor-pointer">
-                <span className="font-mono text-3xl font-semibold tracking-tight">
-                  {metric.items.length}
-                </span>
-                <span className="mt-2 block text-sm font-medium">
-                  {metric.label}
-                </span>
-              </summary>
               <p className="mt-3 text-xs leading-5 text-muted-foreground">
                 {metric.definition}
               </p>
               <SourceList items={metric.items} />
-            </details>
+            </Disclosure>
           ))}
         </div>
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
-          <details className="rounded-lg border p-4">
-            <summary className="cursor-pointer text-sm font-medium">
-              Progressed opportunities · {snapshot.progressed.length}
-            </summary>
+          <Disclosure
+            className="rounded-lg border px-4"
+            triggerClassName="text-sm font-medium"
+            title={`Progressed opportunities · ${snapshot.progressed.length}`}
+          >
             <p className="mt-2 text-xs leading-5 text-muted-foreground">
               Forward transitions between active stage categories. Repeated
               transitions count once per job; terminal outcomes appear
               separately.
             </p>
             <SourceList items={snapshot.progressed} />
-          </details>
-          <details className="rounded-lg border p-4">
-            <summary className="cursor-pointer text-sm font-medium">
-              Closed opportunities · {snapshot.closed.length}
-            </summary>
+          </Disclosure>
+          <Disclosure
+            className="rounded-lg border px-4"
+            triggerClassName="text-sm font-medium"
+            title={`Closed opportunities · ${snapshot.closed.length}`}
+          >
             <SourceList items={snapshot.closed} />
-          </details>
+          </Disclosure>
         </div>
       </section>
-      <details className="mt-5 rounded-lg border p-4">
-        <summary className="cursor-pointer text-sm font-medium">
-          Missed task dates this week · {snapshot.missedTasks.length}
-        </summary>
+      <Disclosure
+        className="mt-5 rounded-lg border px-4"
+        triggerClassName="text-sm font-medium"
+        title={`Missed task dates this week · ${snapshot.missedTasks.length}`}
+      >
         <p className="mt-2 text-xs leading-5 text-muted-foreground">
           Tasks due this week with no completion by the end of their UTC due
           date. Uses recorded task dates at snapshot creation; earlier edits to
           due dates cannot be reconstructed.
         </p>
         <SourceList items={snapshot.missedTasks} />
-      </details>
+      </Disclosure>
       <section className="mt-8 space-y-4 border-t pt-8">
         <h2 className="text-xl font-semibold tracking-tight">
           Risks at snapshot creation
@@ -148,12 +155,14 @@ export default async function WeeklyReviewPage({
           { label: "Actions, deadlines, and interview risks", items: other },
           { label: "Data-quality gaps", items: quality },
         ].map((group) => (
-          <details key={group.label} className="rounded-lg border p-4">
-            <summary className="cursor-pointer text-sm font-medium">
-              {group.label} · {group.items.length}
-            </summary>
+          <Disclosure
+            key={group.label}
+            className="rounded-lg border px-4"
+            triggerClassName="text-sm font-medium"
+            title={`${group.label} · ${group.items.length}`}
+          >
             <SourceList items={riskItems(group.items)} />
-          </details>
+          </Disclosure>
         ))}
       </section>
       <section className="my-8 space-y-4 border-t pt-8">
@@ -170,10 +179,12 @@ export default async function WeeklyReviewPage({
             </li>
           ))}
         </ul>
-        <details className="rounded-lg border bg-muted/25 p-4" open>
-          <summary className="cursor-pointer text-sm font-medium">
-            Limits of this snapshot
-          </summary>
+        <Disclosure
+          defaultOpen
+          className="rounded-lg border bg-muted/25 px-4"
+          triggerClassName="text-sm font-medium"
+          title="Limits of this snapshot"
+        >
           <ul className="mt-3 space-y-2">
             {snapshot.caveats.map((caveat) => (
               <li
@@ -184,7 +195,7 @@ export default async function WeeklyReviewPage({
               </li>
             ))}
           </ul>
-        </details>
+        </Disclosure>
       </section>
       <ReviewEditor
         key={review.id}
