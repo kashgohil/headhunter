@@ -13,6 +13,13 @@ export type Backup = {
 const quote = (name: string) => `"${name.replaceAll('"', '""')}"`;
 const digest = (value: unknown) =>
   createHash("sha256").update(JSON.stringify(value)).digest("hex");
+const privateIntegrationTables = new Set([
+  "calendar_connections",
+  "calendar_oauth_states",
+  "external_calendars",
+  "external_calendar_events",
+  "calendar_event_links",
+]);
 
 function definitions(database: Database.Database) {
   return database
@@ -22,13 +29,15 @@ function definitions(database: Database.Database) {
     .all() as Array<{ name: string; sql: string }>;
 }
 
-export function exportBackup(database: Database.Database): Backup {
+export function exportBackup(database: Database.Database, options: { includePrivateIntegrations?: boolean } = {}): Backup {
   return database.transaction(() => {
     const schema = definitions(database);
     const tables = Object.fromEntries(
       schema.map(({ name }) => [
         name,
-        database.prepare(`SELECT * FROM ${quote(name)}`).all() as Row[],
+        privateIntegrationTables.has(name) && !options.includePrivateIntegrations
+          ? []
+          : database.prepare(`SELECT * FROM ${quote(name)}`).all() as Row[],
       ]),
     );
     const content = {

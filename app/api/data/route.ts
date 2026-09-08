@@ -89,7 +89,7 @@ export async function POST(request: Request) {
         // Keep the write lock until replacement: the recovery copy must include every prior write.
         writeFileSync(
           path.join(directory, recoveryFile),
-          JSON.stringify(exportBackup(sqlite)),
+          JSON.stringify(exportBackup(sqlite, { includePrivateIntegrations: true })),
           { flag: "wx", mode: 0o600 },
         );
         restoreBackup(sqlite, backup);

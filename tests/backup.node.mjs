@@ -21,7 +21,10 @@ describe('workspace backup', () => {
       db.pragma('foreign_keys = ON');
       db.prepare('INSERT INTO jobs (id, title, company, original_description, captured_at) VALUES (?, ?, ?, ?, ?)').run('test', 'Engineer', 'Test', 'Immutable original', Date.now());
       db.prepare('INSERT INTO opportunities (id, job_id, created_at) VALUES (?, ?, ?)').run('test', 'test', Date.now());
+      db.prepare("INSERT INTO calendar_connections (id,provider,encrypted_credentials,created_at,updated_at) VALUES ('google','google','encrypted-secret',?,?)").run(Date.now(), Date.now());
       const backup = exportBackup(db);
+      assert.deepEqual(backup.tables.calendar_connections, []);
+      assert.equal(exportBackup(db, { includePrivateIntegrations: true }).tables.calendar_connections[0].encrypted_credentials, 'encrypted-secret');
       restoreBackup(db, backup);
       assert.deepEqual(exportBackup(db).tables, backup.tables);
       assert.throws(() => db.prepare("UPDATE jobs SET original_description = 'changed'").run(), /immutable/);
