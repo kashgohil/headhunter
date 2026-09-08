@@ -79,6 +79,13 @@ describe('resume import review',()=>{
    const manual=addProposal(db,id,'skill','TypeScript');assert.equal(addProposal(db,id,'skill','TypeScript'),manual);
   }finally{db.close();}
  });
+ it('flags overlapping employment and requires explicit separate-record acknowledgment without overwriting',()=>{
+  const db=database();try{
+   const id=create(db);const p=getImport(db,id).proposals.find(p=>p.kind==='experience');const evidence=reviewProposal(db,p.id,0,'approve',p.fields);db.prepare('update career_experiences set locked=1 where id=?').run(evidence);
+   const fields={...p.fields,title:'Staff Engineer',startDate:'2021-01'};assert.equal(findMatches(db,'experience',fields).length,1);
+   const nextId=createImport(db,{name:'Another resume',format:'text',text:'EXPERIENCE\nStaff Engineer | Fixture Labs | Jan 2021 - Present'});const next=getImport(db,nextId).proposals[0];assert.throws(()=>reviewProposal(db,next.id,0,'approve',fields),/possible duplicate/);assert.ok(reviewProposal(db,next.id,0,'approve',fields,true));assert.equal(db.prepare('select title from career_experiences where id=?').get(evidence).title,'Senior Engineer');
+  }finally{db.close();}
+ });
  it('round-trips sources and review decisions, enforces immutable excerpts and retains evidence on deletion',()=>{
   const db=database();try{
    const id=create(db);const p=getImport(db,id).proposals.find(p=>p.kind==='experience');reviewProposal(db,p.id,0,'approve',p.fields);

@@ -73,10 +73,14 @@ export function findMatches(db: Database.Database, kind: ProposalKind, f: Fields
   const rows = db.prepare(`SELECT * FROM ${tables[kind]}`).all() as Record<string, string | number | null>[];
   return rows.filter(r => {
     if (kind === "skill") return normalized(String(r.name)) === normalized(f.name || "");
-    if (kind === "experience") return normalized(String(r.company)) === normalized(f.company || "") && normalized(String(r.title)) === normalized(f.title || "");
+    if (kind === "experience") {
+      const sameCompany = normalized(String(r.company)) === normalized(f.company || "");
+      const overlap = f.startDate && r.start_date && f.startDate <= String(r.end_date || "9999-12") && String(r.start_date) <= (f.endDate || "9999-12");
+      return sameCompany && (normalized(String(r.title)) === normalized(f.title || "") || Boolean(overlap));
+    }
     if (kind === "achievement") return normalized(String(r.action)) === normalized(f.action || "");
     return r.kind === kind && normalized(String(r.title)) === normalized(f.title || "");
-  }).map(r => ({ id: String(r.id), label: String(r.name || r.title || r.action), state: String(r.verification_state), locked: Boolean(r.locked) }));
+  }).map(r => ({ id: String(r.id), label: kind === "experience" ? `${r.title} · ${r.company} · ${r.start_date}–${r.end_date || (r.is_current ? "Present" : "Unknown")}` : String(r.name || r.title || r.action), state: String(r.verification_state), locked: Boolean(r.locked) }));
 }
 function insertEvidence(db: Database.Database, kind: ProposalKind, f: Fields, source: string) {
   const id = randomUUID(); const now = Date.now();
