@@ -14,6 +14,7 @@ import {
 import { listExperiments } from "@/lib/analytics/storage";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Disclosure } from "@/components/ui/accordion";
 import { FormSelect } from "@/components/action-form";
 import { ExperimentForm } from "./forms";
 
@@ -87,14 +88,22 @@ export default async function AnalyticsPage({
         </p>
         <div className="mt-6 divide-y">
           {funnel.rows.map((row) => (
-            <details key={row.category} className="py-4">
-              <summary className="cursor-pointer text-sm">
-                <span className="ml-1 font-medium">{row.label}</span>
-                <span className="float-right font-mono">
-                  {row.count}/{row.denominator} ·{" "}
-                  {row.rate === null ? "—" : `${(row.rate * 100).toFixed(1)}%`}
-                </span>
-              </summary>
+            <Disclosure
+              key={row.category}
+              className="py-4"
+              triggerClassName="py-0 text-sm"
+              title={
+                <>
+                  <span className="ml-1 font-medium">{row.label}</span>
+                  <span className="ml-auto font-mono">
+                    {row.count}/{row.denominator} ·{" "}
+                    {row.rate === null
+                      ? "—"
+                      : `${(row.rate * 100).toFixed(1)}%`}
+                  </span>
+                </>
+              }
+            >
               <p className="mt-3 text-xs text-muted-foreground">
                 n={row.denominator} · {windowLabel}
               </p>
@@ -116,7 +125,7 @@ export default async function AnalyticsPage({
                   No recorded applications at this milestone.
                 </p>
               )}
-            </details>
+            </Disclosure>
           ))}
         </div>
       </section>
@@ -196,10 +205,10 @@ export default async function AnalyticsPage({
               {groups.map((group) => (
                 <tr key={group.value} className="align-top">
                   <td className="max-w-80 p-4">
-                    <details>
-                      <summary className="cursor-pointer break-words font-medium">
-                        {group.value}
-                      </summary>
+                    <Disclosure
+                      triggerClassName="py-0 break-words font-medium"
+                      title={group.value}
+                    >
                       <ul className="mt-3 space-y-2">
                         {group.applications.map((job) => (
                           <li key={job.id}>
@@ -212,7 +221,7 @@ export default async function AnalyticsPage({
                           </li>
                         ))}
                       </ul>
-                    </details>
+                    </Disclosure>
                   </td>
                   <td className="p-4 font-mono">
                     {group.count}/{group.sampleSize}
@@ -289,14 +298,15 @@ export default async function AnalyticsPage({
             </p>
           )}
         </div>
-        <details className="mt-6 rounded-lg border bg-card p-5 sm:p-7">
-          <summary className="cursor-pointer font-semibold">
-            Plan an experiment
-          </summary>
+        <Disclosure
+          className="mt-6 rounded-lg border bg-card px-5 sm:px-7"
+          triggerClassName="font-semibold"
+          title="Plan an experiment"
+        >
           <div className="mt-6 max-w-3xl">
             <ExperimentForm />
           </div>
-        </details>
+        </Disclosure>
       </section>
     </div>
   );

@@ -3,6 +3,7 @@ import { ArrowUpRight, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Disclosure } from "@/components/ui/accordion";
 import { AlertControls } from "./command-center/alert-controls";
 import { getCommandCenter } from "@/lib/command-center/repository";
 import type { Alert } from "@/lib/command-center/overview";
@@ -178,10 +179,11 @@ export default async function CommandCenterPage() {
             </CardContent>
           </Card>
           {data.hidden.length ? (
-            <details className="mt-5 rounded-lg border bg-card p-5">
-              <summary className="cursor-pointer text-sm font-medium">
-                Dismissed & snoozed ({data.hidden.length})
-              </summary>
+            <Disclosure
+              className="mt-5 rounded-lg border bg-card px-5"
+              triggerClassName="text-sm font-medium"
+              title={`Dismissed & snoozed (${data.hidden.length})`}
+            >
               <ul className="mt-4 divide-y">
                 {data.hidden.map((alert) => (
                   <li key={alert.key} className="py-4">
@@ -198,7 +200,7 @@ export default async function CommandCenterPage() {
                   </li>
                 ))}
               </ul>
-            </details>
+            </Disclosure>
           ) : null}
         </section>
         <div className="space-y-8">
@@ -219,13 +221,19 @@ export default async function CommandCenterPage() {
                 </p>
                 <div className="mt-4 divide-y">
                   {data.funnel.map((row) => (
-                    <details key={row.category} className="py-3">
-                      <summary className="cursor-pointer text-sm">
-                        <span className="ml-1">{row.label}</span>
-                        <span className="float-right font-mono tabular-nums">
-                          {row.applications.length}
-                        </span>
-                      </summary>
+                    <Disclosure
+                      key={row.category}
+                      className="py-3"
+                      triggerClassName="py-0 text-sm"
+                      title={
+                        <>
+                          <span className="ml-1">{row.label}</span>
+                          <span className="ml-auto font-mono tabular-nums">
+                            {row.applications.length}
+                          </span>
+                        </>
+                      }
+                    >
                       <ul className="mt-3 space-y-2">
                         {row.applications.map((application) => (
                           <li key={application.jobId}>
@@ -243,7 +251,7 @@ export default async function CommandCenterPage() {
                           No recorded applications at this milestone.
                         </p>
                       ) : null}
-                    </details>
+                    </Disclosure>
                   ))}
                 </div>
                 <p className="mt-4 text-xs leading-5 text-muted-foreground">
