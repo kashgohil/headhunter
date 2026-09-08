@@ -37,7 +37,12 @@ export function CaptureJobForm() {
   const [sourceType, setSourceType] = useState<"pasted" | "manual">("pasted");
 
   return (
-    <form action={formAction} className="space-y-7">
+    <form action={formAction} className="space-y-7" onResetCapture={(event) => {
+      // Returned validation/storage errors are completed React actions, which
+      // otherwise reset uncontrolled fields. Successful saves navigate away.
+      event.preventDefault();
+      event.stopPropagation();
+    }}>
       <fieldset className="space-y-3">
         <legend className="text-sm font-medium">How are you adding this job?</legend>
         <RadioGroup
@@ -93,6 +98,8 @@ export function CaptureJobForm() {
         <Textarea id="originalDescription" name="originalDescription" placeholder={sourceType === "pasted" ? "Paste the complete job description here…" : "Add any context you want to preserve…"} className="min-h-72 font-mono text-[13px]" aria-invalid={Boolean(state.errors?.originalDescription)} />
         <FieldError messages={state.errors?.originalDescription} />
       </div>
+
+      {state.message ? <p role="alert" className="text-sm text-destructive">{state.message}</p> : null}
 
       <div className="flex flex-col-reverse items-start justify-between gap-4 border-t border-border pt-6 sm:flex-row sm:items-center">
         <p className="max-w-md text-xs leading-5 text-muted-foreground">We preserve the source text exactly so future analysis can always be checked against it.</p>

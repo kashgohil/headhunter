@@ -47,7 +47,12 @@ export async function captureJob(_previousState: CaptureJobState, formData: Form
     };
   }
 
-  const jobId = await createJob(parsed.data);
+  let jobId: string;
+  try {
+    jobId = await createJob(parsed.data);
+  } catch {
+    return { message: "The job could not be saved. Your input is still here. Try again." };
+  }
   redirect(`/jobs/${jobId}`);
 }
 
