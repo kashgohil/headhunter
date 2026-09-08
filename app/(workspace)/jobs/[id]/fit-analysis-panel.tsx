@@ -60,6 +60,8 @@ export function FitAnalysisPanel({ jobId, analysis, evidenceReferences }: { jobI
 
   const effectiveRecommendation = analysis.overriddenRecommendation ?? analysis.recommendation;
   const isOverridden = analysis.overriddenRecommendation !== null;
+  const referenceById = new Map(evidenceReferences.map((item) => [item.id, item]));
+  const referencedEvidence = analysis.evidenceIds.map((id) => referenceById.get(id) ?? { id, label: "Source unavailable" });
   const knownDimensions = dimensionKeys.filter((key) => analysis.dimensions[key].score !== null).length;
 
   return (
@@ -123,7 +125,8 @@ export function FitAnalysisPanel({ jobId, analysis, evidenceReferences }: { jobI
               <p className="max-w-2xl text-xs leading-5 text-muted-foreground"><CircleHelp className="mr-1.5 inline size-3.5 align-[-2px]" />Referral access remains unknown until contacts are available. Unknown dimensions are excluded and known weights are normalized.</p>
               <div className="flex flex-wrap gap-2"><Button asChild variant="ghost" size="sm"><Link href="/settings/search-strategy">Search strategy <ArrowUpRight /></Link></Button><Button asChild variant="ghost" size="sm"><Link href="/career-profile">Career evidence <ArrowUpRight /></Link></Button></div>
             </div>
-            {evidenceReferences.length > 0 ? <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-4"><span className="text-xs font-medium text-muted-foreground">Evidence used</span>{evidenceReferences.map((item) => <Button key={item.id} asChild variant="outline" size="sm"><Link href={item.href}>{item.label} <ArrowUpRight /></Link></Button>)}</div> : null}
+            <div className="mt-4 flex flex-wrap gap-4 text-xs"><Link href={`/sources/job/${jobId}`} className="underline">Inspect job source</Link>{analysis.searchStrategyVersionId ? <Link href={`/sources/strategy/${analysis.searchStrategyVersionId}`} className="underline">Inspect strategy version used</Link> : <span>No strategy linked</span>}</div>
+            {referencedEvidence.length > 0 ? <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-4"><span className="text-xs font-medium text-muted-foreground">Evidence used</span>{referencedEvidence.map((item) => <Button key={item.id} asChild variant="outline" size="sm"><Link href={`/sources/evidence/${item.id}`}>{item.label} <ArrowUpRight /></Link></Button>)}</div> : null}
           </div>
 
           <details className="group border-t border-border">

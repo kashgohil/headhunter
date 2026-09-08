@@ -346,6 +346,7 @@ export const auditEvents = sqliteTable("audit_events", {
   id: text("id").primaryKey(),
   action: text("action", { enum: [
     "workspace.restored",
+    "notifications.updated",
     "job.captured",
     "job.metadata_updated",
     "search_strategy.saved",
@@ -372,12 +373,16 @@ export const auditEvents = sqliteTable("audit_events", {
     "base_resume.created",
     "tailored_resume.created",
     "resume_edit.reviewed",
+    "resume_summary.reviewed",
+    "resume_summary.regenerated",
+    "resume_edit.regenerated",
     "resume.submitted",
     "application.updated",
     "application.submitted",
   ] }).notNull(),
   entityType: text("entity_type", { enum: [
     "workspace",
+    "notification_preferences",
     "job",
     "search_strategy",
     "career_experience",
@@ -568,5 +573,11 @@ export const careerVoiceProfiles = sqliteTable("career_voice_profiles", {
   verificationState: text("verification_state", { enum: evidenceStates }).notNull().default("needs_clarification"),
   locked: integer("locked", { mode: "boolean" }).notNull().default(false),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const notificationPreferences = sqliteTable("notification_preferences", {
+  id: text("id").primaryKey(),
+  settings: text("settings", { mode: "json" }).$type<import("@/lib/notifications/preferences").NotificationPreferences>().notNull(),
   updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
 });

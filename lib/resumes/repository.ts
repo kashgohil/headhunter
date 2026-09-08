@@ -170,7 +170,10 @@ export async function reviewResumeEdit(resumeId: string, editId: string, decisio
 export async function reviewSummary(resumeId: string, decision: Exclude<ResumeDecision, "pending">) {
   const resume = await assertDraft(resumeId);
   if (resume.summaryLocked) throw new Error("Unlock the summary before changing its review decision.");
-  await db.update(tailoredResumes).set({ summaryDecision: decision, updatedAt: new Date() }).where(eq(tailoredResumes.id, resumeId));
+  db.transaction(tx => {
+    tx.update(tailoredResumes).set({ summaryDecision: decision, updatedAt: new Date() }).where(eq(tailoredResumes.id, resumeId)).run();
+    tx.insert(auditEvents).values({id:crypto.randomUUID(),action:"resume_summary.reviewed",entityType:"tailored_resume",entityId:resumeId,occurredAt:new Date()}).run();
+  });
 }
 
 export async function updateResumeSummary(resumeId: string, proposedText: string) {
@@ -192,7 +195,10 @@ export async function regenerateResumeSummary(resumeId: string) {
     skills: detail.job.skills,
     technologies: detail.job.technologies,
   });
-  await db.update(tailoredResumes).set({ summaryProposed: generated.text, summaryEvidenceIds: generated.evidenceIds, summaryConfidence: generated.confidence, summaryRisk: generated.risk, summaryDecision: "pending", updatedAt: new Date() }).where(eq(tailoredResumes.id, resumeId));
+  db.transaction(tx => {
+    tx.update(tailoredResumes).set({ summaryProposed: generated.text, summaryEvidenceIds: generated.evidenceIds, summaryConfidence: generated.confidence, summaryRisk: generated.risk, summaryDecision: "pending", updatedAt: new Date() }).where(eq(tailoredResumes.id, resumeId)).run();
+    tx.insert(auditEvents).values({id:crypto.randomUUID(),action:"resume_summary.regenerated",entityType:"tailored_resume",entityId:resumeId,occurredAt:new Date()}).run();
+  });
 }
 
 export async function updateResumeProposal(resumeId: string, editId: string, proposedText: string) {
@@ -213,7 +219,10 @@ export async function regenerateResumeEdit(resumeId: string, editId: string) {
   const achievement = await db.select().from(careerAchievements).where(eq(careerAchievements.id, edit.achievementId)).get();
   if (!achievement) throw new Error("The supporting achievement no longer exists.");
   const regeneration = edit.regeneration + 1;
-  await db.update(resumeBulletEdits).set({ proposedText: regenerateBullet(achievement, regeneration), decision: "pending", regeneration, updatedAt: new Date() }).where(eq(resumeBulletEdits.id, editId));
+  db.transaction(tx => {
+    tx.update(resumeBulletEdits).set({ proposedText: regenerateBullet(achievement, regeneration), decision: "pending", regeneration, updatedAt: new Date() }).where(eq(resumeBulletEdits.id, editId)).run();
+    tx.insert(auditEvents).values({id:crypto.randomUUID(),action:"resume_edit.regenerated",entityType:"resume_edit",entityId:editId,occurredAt:new Date()}).run();
+  });
 }
 
 export async function setEditLock(resumeId: string, editId: string, locked: boolean) {
@@ -231,7 +240,13 @@ export async function reviewSection(resumeId: string, section: string, decision:
   await assertDraft(resumeId);
   const lock = await db.select().from(resumeSectionLocks).where(and(eq(resumeSectionLocks.tailoredResumeId, resumeId), eq(resumeSectionLocks.section, section))).get();
   if (lock?.locked) throw new Error("Unlock this section before reviewing it.");
-  if (section === "experience") await db.update(resumeBulletEdits).set({ decision, updatedAt: new Date() }).where(and(eq(resumeBulletEdits.tailoredResumeId, resumeId), eq(resumeBulletEdits.locked, false)));
+  if (section === "experience") db.transaction(tx => {
+    const edits = tx.select({id:resumeBulletEdits.id}).from(resumeBulletEdits).where(and(eq(resumeBulletEdits.tailoredResumeId,resumeId),eq(resumeBulletEdits.locked,false))).all();
+    for (const edit of edits) {
+      tx.update(resumeBulletEdits).set({decision,updatedAt:new Date()}).where(eq(resumeBulletEdits.id,edit.id)).run();
+      tx.insert(auditEvents).values({id:crypto.randomUUID(),action:"resume_edit.reviewed",entityType:"resume_edit",entityId:edit.id,occurredAt:new Date()}).run();
+    }
+  });
 }
 
 export async function setSectionLock(resumeId: string, section: string, locked: boolean) {

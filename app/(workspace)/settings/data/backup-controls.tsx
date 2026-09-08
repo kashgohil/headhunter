@@ -10,6 +10,11 @@ export function BackupControls({
   recoveryFiles?: string[];
 }) {
   const router = useRouter();
+  const [failed, setFailed] = useState<{
+    operation: "export" | "preview" | "recovery";
+    selected: unknown;
+  } | null>(null);
+  const [isError, setIsError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [backup, setBackup] = useState<unknown>(null);
@@ -23,6 +28,8 @@ export function BackupControls({
     selected: unknown = backup,
   ) {
     setBusy(true);
+    setFailed(null);
+    setIsError(false);
     setMessage("");
     try {
       const response = await fetch("/api/data", {
@@ -57,9 +64,17 @@ export function BackupControls({
         router.refresh();
       }
     } catch (error) {
+      setIsError(true);
+      if (operation !== "restore") setFailed({ operation, selected });
+      else {
+        setConfirmation("");
+        router.refresh();
+      }
       setMessage(
         error instanceof Error
-          ? error.message
+          ? operation === "restore"
+            ? `${error.message} Reload this page and inspect history before retrying: the restore may have completed if its response was lost. Type REPLACE again only after checking.`
+            : error.message
           : "Could not complete the operation. Try again.",
       );
     } finally {
@@ -101,6 +116,8 @@ export function BackupControls({
           disabled={busy}
           className="mt-2 max-w-lg"
           onChange={async (event) => {
+            setFailed(null);
+            setIsError(false);
             setPreview(null);
             setBackup(null);
             setConfirmation("");
@@ -108,6 +125,7 @@ export function BackupControls({
             const file = event.target.files?.[0];
             if (!file) return;
             if (file.size > 50 * 1024 * 1024) {
+              setIsError(true);
               setMessage("Choose a file smaller than 50 MB.");
               return;
             }
@@ -117,6 +135,7 @@ export function BackupControls({
               setBackup(parsed);
               await run("preview", parsed);
             } catch {
+              setIsError(true);
               setMessage("This file is not valid JSON.");
               setBusy(false);
             }
@@ -194,13 +213,22 @@ export function BackupControls({
           </ul>
         </section>
       ) : null}
+      {failed ? (
+        <Button
+          variant="outline"
+          disabled={busy}
+          onClick={() => run(failed.operation, failed.selected)}
+        >
+          Retry {failed.operation === "preview" ? "validation" : "download"}
+        </Button>
+      ) : null}
       {busy ? (
         <p role="status" className="text-sm text-muted-foreground">
           Working…
         </p>
       ) : null}
       {message ? (
-        <p role="status" className="break-words text-sm">
+        <p role={isError ? "alert" : "status"} className="break-words text-sm">
           {message}
         </p>
       ) : null}

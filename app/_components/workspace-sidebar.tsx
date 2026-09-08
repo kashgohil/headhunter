@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   FileText,
+  Search,
+  Bell,
   Database,
   ChartNoAxesCombined,
   Users,
@@ -29,6 +31,8 @@ import {
 } from "@/components/ui/sidebar";
 
 const navigation = [
+  { label: "Search", icon: Search, href: "/search" },
+  { label: "Notifications", icon: Bell, href: "/notifications" },
   { label: "Command center", icon: LayoutDashboard, href: "/" },
   { label: "Job inbox", icon: Inbox, href: "/jobs" },
   { label: "Pipeline", icon: SlidersHorizontal, href: "/pipeline" },

@@ -1,5 +1,5 @@
 "use client";
-import { useActionState, useId, useState } from "react";
+import { startTransition, useActionState, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,16 +15,27 @@ export function ActionForm({
   action,
   children,
   label = "Save",
+  preserveInput = false,
   className = "space-y-4",
 }: {
   action: (state: FormState, data: FormData) => Promise<FormState>;
   children: React.ReactNode;
   label?: string;
+  preserveInput?: boolean;
   className?: string;
 }) {
   const [state, submit, pending] = useActionState(action, {});
   return (
-    <form action={submit} className={className}>
+    <form
+      action={submit}
+      onSubmit={(event) => {
+        if (!preserveInput) return;
+        event.preventDefault();
+        const data = new FormData(event.currentTarget);
+        startTransition(() => submit(data));
+      }}
+      className={className}
+    >
       <fieldset disabled={pending} className="space-y-4">
         {children}
         <Button disabled={pending}>{pending ? "Saving…" : label}</Button>

@@ -35,13 +35,21 @@ export default async function DataSettingsPage({
     Math.min(100000, Number.parseInt(query.page ?? "1") || 1),
   );
   const kind =
-    query.kind === "stage" ? "stage" : query.kind === "audit" ? "audit" : "all";
+    query.kind === "stage"
+      ? "stage"
+      : query.kind === "audit"
+        ? "audit"
+        : query.kind === "outbound"
+          ? "outbound"
+          : "all";
   const rows = sqlite
     .prepare(
       `SELECT * FROM (
     SELECT id, action AS title, entity_type AS kind, entity_id AS source, occurred_at AS at, NULL AS detail, 'audit' AS stream FROM audit_events
     UNION ALL
     SELECT id, title, 'application' AS kind, job_id AS source, occurred_at AS at, detail, 'stage' AS stream FROM application_events WHERE kind = 'stage'
+    UNION ALL
+    SELECT id, 'Outbound ' || channel || ' recorded', 'contact', contact_id, occurred_at, summary, 'outbound' FROM contact_interactions WHERE direction = 'outbound'
   ) WHERE (? = 'all' OR stream = ?) ORDER BY at DESC, id DESC LIMIT 51 OFFSET ?`,
     )
     .all(kind, kind, (page - 1) * 50) as Array<{
@@ -68,11 +76,11 @@ export default async function DataSettingsPage({
       <section className="mt-10 border-t pt-8">
         <h2 className="text-xl font-semibold tracking-tight">Audit history</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Recorded generation, review, submission, and stage events. All times
-          shown in UTC.
+          Recorded generation, review, submission, stage events, and manually
+          logged outbound interactions. All times shown in UTC.
         </p>
-        <nav aria-label="Audit filters" className="my-4 flex gap-2">
-          {["all", "audit", "stage"].map((value) => (
+        <nav aria-label="Audit filters" className="my-4 flex flex-wrap gap-2">
+          {["all", "audit", "stage", "outbound"].map((value) => (
             <Button
               key={value}
               asChild
@@ -84,7 +92,9 @@ export default async function DataSettingsPage({
                   ? "All events"
                   : value === "audit"
                     ? "Audit records"
-                    : "Stage changes"}
+                    : value === "stage"
+                      ? "Stage changes"
+                      : "Recorded outbound"}
               </Link>
             </Button>
           ))}

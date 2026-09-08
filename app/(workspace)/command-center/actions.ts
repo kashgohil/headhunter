@@ -18,6 +18,7 @@ export async function updateAlertAction(
   try {
     await updateAlertPreference(parsed.data.key, parsed.data.operation);
     revalidatePath("/");
+    revalidatePath("/notifications");
     return {};
   } catch (error) {
     return {

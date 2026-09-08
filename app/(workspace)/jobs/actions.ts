@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
-import { jobExtractionProvider } from "@/lib/jobs/extraction";
+import { htmlToText, jobExtractionProvider } from "@/lib/jobs/extraction";
 import { createImportedJob, createJob, updateJobMetadata } from "@/lib/jobs/repository";
 import { fetchJobSource, SourceFetchError } from "@/lib/jobs/source-fetcher";
 import { createJobSchema, jobMetadataSchema, urlImportSchema } from "@/lib/jobs/validation";
@@ -16,6 +16,8 @@ export type CaptureJobState = {
 };
 
 export type ImportJobState = {
+  partialSource?: string;
+  sourceUrl?: string;
   errors?: Partial<Record<"sourceUrl", string[]>>;
   message?: string;
 };
@@ -60,8 +62,10 @@ export async function captureJobFromUrl(
   }
 
   let jobId: string;
+  let partialSource = _previousState.sourceUrl === parsed.data.sourceUrl ? _previousState.partialSource : undefined;
   try {
     const source = await fetchJobSource(parsed.data.sourceUrl);
+    partialSource = (source.contentType.includes("html") ? htmlToText(source.body) : source.body).slice(0, 100000);
     const extraction = await jobExtractionProvider.extract({
       body: source.body,
       contentType: source.contentType,
@@ -69,15 +73,17 @@ export async function captureJobFromUrl(
     });
 
     if (!extraction.title || !extraction.company || !extraction.originalDescription) {
-      return { message: "We could not identify the role and company on that page. Paste the description instead." };
+      return { partialSource, sourceUrl: parsed.data.sourceUrl, message: "The page was fetched, but the role and company could not be identified. Nothing was saved. Copy the recovered text below into manual capture, or retry the import." };
     }
 
     jobId = await createImportedJob(extraction, source.url, source.fetchedAt);
   } catch (error) {
     return {
+      partialSource,
+      sourceUrl: parsed.data.sourceUrl,
       message: error instanceof SourceFetchError
         ? error.message
-        : "That job could not be imported. Paste the description instead.",
+        : "Import did not complete. Nothing was saved. Retry, or use the recovered source in manual capture.",
     };
   }
 

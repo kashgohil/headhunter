@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useActionState, useEffect, useRef } from "react";
 import { BookOpen, Check, ExternalLink, FileQuestion, Library, LoaderCircle, Plus, Save } from "lucide-react";
 
@@ -152,6 +154,7 @@ function CompanyEntryCard({ jobId, entry }: { jobId: string; entry: CompanyResea
         <span className="text-xs text-muted-foreground">{topicLabels[entry.topic]}</span>
       </div>
       <p className="mt-3 whitespace-pre-wrap text-sm leading-6">{entry.content}</p>
+      <Link href={`/sources/company/${entry.id}`} className="mt-3 inline-block text-xs underline">Inspect source record</Link>
       {entry.sourceUrl ? (
         <div className="mt-4 flex flex-col gap-3 border-t border-border pt-3 sm:flex-row sm:items-center sm:justify-between">
           <a href={entry.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex min-w-0 items-center gap-1.5 text-xs font-medium text-primary hover:underline">

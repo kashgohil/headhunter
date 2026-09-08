@@ -24,7 +24,7 @@ export default function NewJobPage() {
           <CardHeader className="border-b border-border pb-6"><CardTitle>Import from a job link</CardTitle><CardDescription>Best for public job pages with accessible source content.</CardDescription></CardHeader>
           <CardContent><UrlCaptureForm /></CardContent>
         </Card>
-        <Card>
+        <Card id="manual-capture">
           <CardHeader className="border-b border-border pb-6"><CardTitle>Paste or enter manually</CardTitle><CardDescription>Use this when a site blocks import or you only have partial details.</CardDescription></CardHeader>
           <CardContent><CaptureJobForm /></CardContent>
         </Card>

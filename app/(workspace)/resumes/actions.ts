@@ -79,10 +79,11 @@ export async function updateProposalAction(resumeId: string, formData: FormData)
   revalidatePath(`/resumes/${resumeId}`);
 }
 
-export async function regenerateEditAction(resumeId: string, formData: FormData) {
+export async function regenerateEditAction(resumeId: string, _state: ResumeActionState, formData: FormData): Promise<ResumeActionState> {
   const editId = String(formData.get("editId") ?? "");
-  await regenerateResumeEdit(resumeId, editId);
+  try { await regenerateResumeEdit(resumeId, editId); } catch (error) { return {message: error instanceof Error ? error.message : "Regeneration failed. Retry this bullet; other sections are unchanged."}; }
   revalidatePath(`/resumes/${resumeId}`);
+  return {success:true,message:"Regenerated. Review the new proposal."};
 }
 
 export async function setEditLockAction(resumeId: string, formData: FormData) {
@@ -102,9 +103,10 @@ export async function updateSummaryAction(resumeId: string, formData: FormData) 
   revalidatePath(`/resumes/${resumeId}`);
 }
 
-export async function regenerateSummaryAction(resumeId: string) {
-  await regenerateResumeSummary(resumeId);
+export async function regenerateSummaryAction(resumeId: string): Promise<ResumeActionState> {
+  try { await regenerateResumeSummary(resumeId); } catch (error) { return {message: error instanceof Error ? error.message : "Regeneration failed. Retry the summary; other sections are unchanged."}; }
   revalidatePath(`/resumes/${resumeId}`);
+  return {success:true,message:"Regenerated. Review the new proposal."};
 }
 
 export async function reviewSectionAction(resumeId: string, formData: FormData) {

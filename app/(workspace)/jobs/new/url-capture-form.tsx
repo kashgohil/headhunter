@@ -1,17 +1,19 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Download, LoaderCircle } from "lucide-react";
 
 import { captureJobFromUrl, type ImportJobState } from "@/app/(workspace)/jobs/actions";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 
 const initialState: ImportJobState = {};
 
 export function UrlCaptureForm() {
   const [state, formAction, pending] = useActionState(captureJobFromUrl, initialState);
+  const [sourceUrl, setSourceUrl] = useState("");
   const reduceMotion = useReducedMotion();
 
   return (
@@ -22,6 +24,10 @@ export function UrlCaptureForm() {
           id="importSourceUrl"
           name="sourceUrl"
           type="url"
+          value={sourceUrl}
+          onChange={(event) => setSourceUrl(event.target.value)}
+          disabled={pending}
+          required
           placeholder="https://company.com/jobs/..."
           aria-invalid={Boolean(state.errors?.sourceUrl)}
           aria-describedby="import-source-status"
@@ -29,7 +35,7 @@ export function UrlCaptureForm() {
         />
         <Button type="submit" disabled={pending} className="sm:min-w-36">
           {pending ? <LoaderCircle className="animate-spin motion-reduce:animate-none" /> : <Download />}
-          {pending ? "Importing…" : "Import page"}
+          {pending ? "Importing…" : state.message ? "Retry import" : "Import page"}
         </Button>
       </div>
       <div id="import-source-status" aria-live="polite" className="min-h-5">
@@ -49,6 +55,8 @@ export function UrlCaptureForm() {
           )}
         </AnimatePresence>
       </div>
+      {state.message ? <a href="#manual-capture" className="inline-block text-sm underline">Paste or enter manually</a> : null}
+      {state.partialSource ? <div className="space-y-2"><label htmlFor="recovered-source" className="text-sm font-medium">Recovered page text · not saved</label><Textarea id="recovered-source" value={state.partialSource} readOnly className="min-h-48" /><p className="text-xs text-muted-foreground">Recovered from {state.sourceUrl}. Copy this text into manual capture below and supply the missing role details. Up to 100,000 characters are retained.</p></div> : null}
     </form>
   );
 }
