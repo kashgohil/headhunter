@@ -23,7 +23,7 @@ CALENDAR_TOKEN_KEY=64-hex-characters
 
 Generate the encryption key with `openssl rand -hex 32`. Keep the client secret and token key outside source control. Changing `CALENDAR_TOKEN_KEY` makes existing stored credentials unreadable; disconnect the integration before planned rotation, set the new key, and reconnect.
 
-The current application remains a trusted local, single-user system. Do not expose the callback publicly until ISSUE-285 adds hosted authentication, owner authorization, protected secret storage, and deployment-specific recovery controls.
+Local mode remains a trusted single-user system. Hosted callbacks require the authentication, owner authorization, protected secret storage, TLS, and recovery controls in [Private hosted deployment](hosted-deployment.md).
 
 ## Connection and sync behavior
 

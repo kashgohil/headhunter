@@ -15,4 +15,6 @@ Open [http://localhost:3050](http://localhost:3050).
 
 Google Calendar is optional and requires local OAuth credentials plus an encryption key. See [calendar integration setup](docs/calendar-integration.md).
 
+Private hosted mode uses a single-owner session, encrypted persistent storage, encrypted backups, a locked-down container, and a loopback TLS proxy. Follow the [hosted deployment and recovery runbook](docs/hosted-deployment.md) before exposing the application.
+
 The application is currently a Next.js scaffold. Product decisions should be checked against the product plan before implementation.
