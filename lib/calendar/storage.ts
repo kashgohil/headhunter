@@ -101,3 +101,10 @@ export function createInterviewFromCalendarEvent(database: Database.Database, ev
     return interviewId;
   })();
 }
+
+export function disconnectCalendarData(database: Database.Database, connectionId: string) {
+  database.transaction(() => {
+    database.prepare("DELETE FROM calendar_connections WHERE id=?").run(connectionId);
+    database.prepare("DELETE FROM calendar_oauth_states WHERE provider='google'").run();
+  })();
+}

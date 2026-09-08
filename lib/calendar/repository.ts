@@ -16,7 +16,7 @@ import {
   refreshGoogleCredentials,
   revokeGoogleCredential,
 } from "@/lib/calendar/google";
-import { createInterviewFromCalendarEvent, linkCalendarEvent } from "@/lib/calendar/storage";
+import { createInterviewFromCalendarEvent, disconnectCalendarData, linkCalendarEvent } from "@/lib/calendar/storage";
 import { calendarSyncFuture, calendarSyncPast, synchronizeCalendar } from "@/lib/calendar/service";
 import { db, sqlite } from "@/lib/db";
 import {
@@ -175,8 +175,7 @@ export async function disconnectGoogleCalendar() {
     revoked = false;
   }
   sqlite.transaction(() => {
-    sqlite.prepare("DELETE FROM calendar_connections WHERE id=?").run(googleConnectionId);
-    sqlite.prepare("DELETE FROM calendar_oauth_states WHERE provider='google'").run();
+    disconnectCalendarData(sqlite, googleConnectionId);
     audit("calendar.disconnected", "calendar_connection", googleConnectionId);
   })();
   return { revoked };

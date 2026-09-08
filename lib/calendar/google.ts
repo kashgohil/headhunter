@@ -117,6 +117,8 @@ function zonedDate(date: string, timeZone: string) {
 
 export function normalizeGoogleEvent(event: GoogleEvent, calendarTimeZone: string): ProviderEvent | null {
   if (!event.id || !event.updated) return null;
+  const providerUpdatedAt = new Date(event.updated);
+  if (!Number.isFinite(providerUpdatedAt.getTime())) return null;
   const status = event.status === "cancelled" ? "cancelled" : event.status === "tentative" ? "tentative" : "confirmed";
   const allDay = Boolean(event.start?.date);
   const timeZone = event.start?.timeZone || event.originalStartTime?.timeZone || calendarTimeZone;
@@ -133,7 +135,7 @@ export function normalizeGoogleEvent(event: GoogleEvent, calendarTimeZone: strin
     allDay,
     recurringEventId: event.recurringEventId || null,
     originalStartTime: event.originalStartTime?.dateTime || event.originalStartTime?.date || null,
-    providerUpdatedAt: new Date(event.updated),
+    providerUpdatedAt,
   };
 }
 

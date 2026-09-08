@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import Database from 'better-sqlite3';
 import { readFileSync } from 'node:fs';
 
-import { createInterviewFromCalendarEvent, linkCalendarEvent, storeProviderEvents } from '../lib/calendar/storage.ts';
+import { createInterviewFromCalendarEvent, disconnectCalendarData, linkCalendarEvent, storeProviderEvents } from '../lib/calendar/storage.ts';
 import { synchronizeCalendar } from '../lib/calendar/service.ts';
 
 function database() {
@@ -93,6 +93,24 @@ describe('calendar event persistence', () => {
         /Reconnect/,
       );
       assert.equal(db.prepare("SELECT status FROM calendar_connections WHERE id='connection'").get().status, 'expired');
+    } finally { db.close(); }
+  });
+
+  it('disconnects cached provider data and permits reconnect without deleting interview notes', () => {
+    const db = database();
+    try {
+      storeProviderEvents(db, 'calendar', [event()]);
+      linkCalendarEvent(db, db.prepare('SELECT id FROM external_calendar_events').get().id, 'interview');
+      disconnectCalendarData(db, 'connection');
+      assert.equal(db.prepare('SELECT count(*) n FROM calendar_connections').get().n, 0);
+      assert.equal(db.prepare('SELECT count(*) n FROM external_calendar_events').get().n, 0);
+      assert.deepEqual(db.prepare("SELECT label,notes FROM application_interviews WHERE id='interview'").get(), { label: 'Manual label', notes: 'Keep these private notes' });
+
+      const now = Date.now();
+      db.prepare("INSERT INTO calendar_connections (id,provider,encrypted_credentials,created_at,updated_at) VALUES ('connection','google','new-encrypted',?,?)").run(now, now);
+      db.prepare("INSERT INTO external_calendars (id,connection_id,provider_calendar_id,name,time_zone,selected,updated_at) VALUES ('calendar-2','connection','primary','Interviews','America/New_York',1,?)").run(now);
+      storeProviderEvents(db, 'calendar-2', [event()]);
+      assert.equal(db.prepare('SELECT count(*) n FROM external_calendar_events').get().n, 1);
     } finally { db.close(); }
   });
 });
