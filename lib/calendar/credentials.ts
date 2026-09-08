@@ -9,6 +9,15 @@ function credentialKey(value = process.env.CALENDAR_TOKEN_KEY) {
   return key;
 }
 
+function decodeBase64Url(value: string, field: string) {
+  if (!/^[A-Za-z0-9_-]+$/.test(value)) throw new Error(`Stored calendar credential ${field} is invalid.`);
+  const decoded = Buffer.from(value, "base64url");
+  if (!decoded.length || decoded.toString("base64url") !== value) {
+    throw new Error(`Stored calendar credential ${field} is invalid.`);
+  }
+  return decoded;
+}
+
 export function encryptCalendarCredentials(credentials: CalendarCredentials, keyValue?: string) {
   const iv = randomBytes(12);
   const cipher = createCipheriv("aes-256-gcm", credentialKey(keyValue), iv);
@@ -19,9 +28,9 @@ export function encryptCalendarCredentials(credentials: CalendarCredentials, key
 export function decryptCalendarCredentials(value: string, keyValue?: string): CalendarCredentials {
   const [version, ivValue, tagValue, ciphertextValue, extra] = value.split(".");
   if (version !== "v1" || !ivValue || !tagValue || !ciphertextValue || extra) throw new Error("Stored calendar credentials are invalid.");
-  const decipher = createDecipheriv("aes-256-gcm", credentialKey(keyValue), Buffer.from(ivValue, "base64url"));
-  decipher.setAuthTag(Buffer.from(tagValue, "base64url"));
-  const plaintext = Buffer.concat([decipher.update(Buffer.from(ciphertextValue, "base64url")), decipher.final()]).toString("utf8");
+  const decipher = createDecipheriv("aes-256-gcm", credentialKey(keyValue), decodeBase64Url(ivValue, "IV"));
+  decipher.setAuthTag(decodeBase64Url(tagValue, "authentication tag"));
+  const plaintext = Buffer.concat([decipher.update(decodeBase64Url(ciphertextValue, "ciphertext")), decipher.final()]).toString("utf8");
   const parsed = JSON.parse(plaintext) as Partial<CalendarCredentials>;
   if (typeof parsed.accessToken !== "string" || typeof parsed.refreshToken !== "string" || typeof parsed.expiresAt !== "number") {
     throw new Error("Stored calendar credentials are invalid.");
