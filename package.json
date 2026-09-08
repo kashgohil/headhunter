@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@fontsource/noto-sans-devanagari": "^5.3.0",
+    "@hookform/resolvers": "^5.9.1",
     "@xmldom/xmldom": "^0.9.12",
     "better-sqlite3": "^13.0.3",
     "class-variance-authority": "^0.7.1",
@@ -32,6 +33,7 @@
     "react": "19.2.8",
     "react-day-picker": "^10.0.1",
     "react-dom": "19.2.8",
+    "react-hook-form": "^7.87.0",
     "tailwind-merge": "^3.6.0",
     "yauzl": "^3.4.0",
     "zod": "^4.5.4"

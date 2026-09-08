@@ -4,6 +4,7 @@ import { jobs } from "@/lib/db/schema";
 import { listInterviews } from "@/lib/interviews/repository";
 import { ActionForm, FormSelect } from "@/components/action-form";
 import { Badge } from "@/components/ui/badge";
+import { Disclosure } from "@/components/ui/accordion";
 import { saveRoundAction } from "./actions";
 import { PlanFields } from "./plan-fields";
 
@@ -66,11 +67,12 @@ export default async function InterviewsPage() {
             </p>
           ) : null}
         </section>
-        <details className="rounded-lg border bg-card p-5">
-          <summary className="cursor-pointer text-lg font-semibold">
-            Schedule a round
-          </summary>
-          <div className="mt-5">
+        <Disclosure
+          className="rounded-lg border bg-card px-5"
+          triggerClassName="text-lg font-semibold"
+          title="Schedule a round"
+        >
+          <div className="mt-1">
             {roles.length ? (
               <ActionForm
                 action={saveRoundAction.bind(null, null)}
@@ -92,7 +94,7 @@ export default async function InterviewsPage() {
               </Link>
             )}
           </div>
-        </details>
+        </Disclosure>
       </div>
     </div>
   );

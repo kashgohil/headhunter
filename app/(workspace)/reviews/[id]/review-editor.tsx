@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FormSelect } from "@/components/action-form";
+import { Disclosure } from "@/components/ui/accordion";
 export function ReviewEditor({
   review,
 }: {
@@ -79,14 +80,15 @@ export function ReviewEditor({
             Optional hypotheses to test, not conclusions. Pick at most one to
             run at a time; name the single change, time window, and measure.
           </p>
-          <details className="rounded-lg border bg-muted/25 p-4">
-            <summary className="cursor-pointer text-sm font-medium">
-              Suggested experiment
-            </summary>
+          <Disclosure
+            className="rounded-lg border bg-muted/25 px-4"
+            triggerClassName="text-sm font-medium"
+            title="Suggested experiment"
+          >
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
               {review.snapshot.suggestedExperiment}
             </p>
-          </details>
+          </Disclosure>
           <label htmlFor="experimentOne" className="block text-sm font-medium">
             First idea
           </label>

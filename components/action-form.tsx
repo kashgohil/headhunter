@@ -56,25 +56,50 @@ export function ActionForm({
   );
 }
 export function FormSelect({
+  id: providedId,
   name,
   label,
   options,
   defaultValue,
+  placeholder,
+  required,
+  disabled,
+  "aria-invalid": ariaInvalid,
+  "aria-describedby": ariaDescribedby,
 }: {
+  id?: string;
   name: string;
-  label: string;
+  label?: string;
   options: Array<{ value: string; label: string }>;
   defaultValue?: string;
+  placeholder?: string;
+  required?: boolean;
+  disabled?: boolean;
+  "aria-invalid"?: boolean;
+  "aria-describedby"?: string;
 }) {
-  const id = useId();
+  const generatedId = useId();
+  const id = providedId ?? generatedId;
   return (
     <div>
-      <label htmlFor={id} className="text-sm font-medium">
-        {label}
-      </label>
-      <Select name={name} defaultValue={defaultValue ?? options[0]?.value}>
-        <SelectTrigger id={id} className="mt-2">
-          <SelectValue />
+      {label ? (
+        <label htmlFor={id} className="text-sm font-medium">
+          {label}
+        </label>
+      ) : null}
+      <Select
+        name={name}
+        defaultValue={defaultValue ?? options[0]?.value}
+        required={required}
+        disabled={disabled}
+      >
+        <SelectTrigger
+          id={id}
+          aria-invalid={ariaInvalid}
+          aria-describedby={ariaDescribedby}
+          className={label ? "mt-2" : undefined}
+        >
+          <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
           {options.map((option) => (
