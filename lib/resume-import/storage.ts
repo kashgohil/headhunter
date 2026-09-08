@@ -37,7 +37,8 @@ export function createImport(db: Database.Database, input: { name: string; forma
     if (existing) return existing.id;
     const id = randomUUID();
     db.prepare("INSERT INTO resume_imports (id,fingerprint,name,format,source_text,warning,extractor_version,created_at) VALUES (?,?,?,?,?,?,?,?)").run(id, fingerprint, input.name.slice(0, 180), input.format, input.text, input.warning || "", EXTRACTOR_VERSION, Date.now());
-    insertExtracted(db, id, input.text);
+    const added = insertExtracted(db, id, input.text);
+    if (added >= MAX_PROPOSALS) db.prepare("UPDATE resume_imports SET warning=? WHERE id=?").run([input.warning, "Only the first 150 proposals are shown. Review the source for omitted facts."].filter(Boolean).join(" "), id);
     audit(db, "resume_import.created", id);
     return id;
   })();

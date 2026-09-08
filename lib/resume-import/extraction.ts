@@ -29,13 +29,13 @@ export function extractProposals(text: string): ExtractedProposal[] {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
     if (!line) { context = []; continue; }
-    const heading = /^(?:professional |technical |work |relevant )?(experience|employment|skills|education|projects|achievements|summary|certifications)\s*:?(.*)$/i.exec(line);
-    if (heading && (!heading[2].trim() || heading[1].toLowerCase() === "skills")) {
+    const heading = /^(?:professional |technical |work |relevant )?(experience|employment|skills|education|projects|achievements|summary|certifications)(?:\s*:\s*(.*))?\s*$/i.exec(line);
+    if (heading && (!(heading[2] || "").trim() || heading[1].toLowerCase() === "skills")) {
       section = heading[1].toLowerCase(); context = []; roleKey = "";
-      if (!heading[2].trim()) continue;
+      if (!(heading[2] || "").trim()) continue;
     }
     if (section === "skills") {
-      const content = heading ? heading[2] : line.replace(/^[\s•*-]+/, "");
+      const content = heading ? heading[2] || "" : line.replace(/^[\s•*-]+/, "");
       for (const skill of content.split(/[,;|•]/).map(s => s.trim()).filter(Boolean)) {
         if (skill.length <= 100) add("skill", lines[i], { name: skill }, i);
       }
@@ -44,7 +44,7 @@ export function extractProposals(text: string): ExtractedProposal[] {
     const dates = range.exec(line);
     if (["experience", "employment"].includes(section) && dates) {
       const header = line.slice(0, dates.index).replace(/[|,\s–—-]+$/, "");
-      const parts = (header ? header.split(/\s+(?:at|@)\s+|\s*[|]\s*/i) : context.slice(-2)).filter(Boolean);
+      const parts = (header ? [header] : context.slice(-2)).flatMap(value => value.split(/\s+(?:at|@)\s+|\s*[|]\s*/i)).filter(Boolean);
       const quote = [...context.slice(-2), lines[i]].join("\n");
       roleKey = add("experience", quote, { title: parts[0] || "", company: parts[1] || "", startDate: monthValue(dates[1]), endDate: monthValue(dates[2]), isCurrent: /^(present|current|now)$/i.test(dates[2]) ? "true" : "false" }, i) || "";
       context = []; continue;

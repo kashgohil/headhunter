@@ -27,6 +27,11 @@ function database() {
 }
 const create = db => createImport(db,{name:'Synthetic resume',format:'text',text:source});
 describe('resume import review',()=>{
+ it('reads split-line PDF headings and reports proposal limits without truncating the source',()=>{
+  const proposals=extractProposals('EXPERIENCE\nSenior Engineer | Fixture Labs\n2020-01 - Present\nSKILLS: TypeScript, React');
+  assert.equal(proposals[0].fields.title,'Senior Engineer');assert.equal(proposals[0].fields.company,'Fixture Labs');assert.equal(proposals.length,3);
+  const db=database();try{const text='SKILLS\n'+Array.from({length:151},(_,i)=>'Skill '+i).join(', ');const id=createImport(db,{name:'Many skills',format:'text',text});const record=getImport(db,id);assert.equal(record.proposals.length,150);assert.equal(record.source_text,text);assert.match(record.warning,/150 proposals/);}finally{db.close();}
+ });
  it('extracts all supported kinds without inventing missing context, metrics or proficiency',()=>{
   const p=extractProposals(source);assert.deepEqual(p.map(p=>p.kind),['experience','achievement','skill','skill','education','project']);
   assert.equal(p[0].fields.startDate,'2020-01');assert.equal(p[0].fields.company,'Fixture Labs');
