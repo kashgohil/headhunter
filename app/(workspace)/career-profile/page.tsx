@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
 	AlertTriangle,
 	Archive,
@@ -329,6 +330,7 @@ export default async function CareerProfilePage() {
 					source of truth. New entries start in review and remain editable until
 					you lock them.
 				</p>
+				<Button asChild variant="outline" className="mt-5 w-fit"><Link href="/career-profile/import">Import a resume</Link></Button>
 			</header>
 
 			<ReadinessPanel readiness={profile.readiness} />

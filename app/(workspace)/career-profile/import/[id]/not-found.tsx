@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default function NotFound() { return <div className="mx-auto max-w-xl px-6 py-16"><h1 className="text-2xl font-semibold">Import not found</h1><p className="mt-3 text-sm text-muted-foreground">It may have been removed or replaced by a backup.</p><Link href="/career-profile/import" className="mt-5 inline-block underline underline-offset-4">Return to resume imports</Link></div>; }

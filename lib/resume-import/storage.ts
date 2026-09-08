@@ -15,7 +15,7 @@ export function listImports(db: Database.Database) {
 export function getImport(db: Database.Database, id: string) {
   const record = db.prepare("SELECT * FROM resume_imports WHERE id=?").get(id) as ImportRecord | undefined;
   if (!record) return null;
-  const rows = db.prepare("SELECT * FROM resume_import_proposals WHERE import_id=? ORDER BY created_at,id").all(id) as Row[];
+  const rows = db.prepare("SELECT * FROM resume_import_proposals WHERE import_id=? ORDER BY created_at,rowid").all(id) as Row[];
   const proposals: Proposal[] = rows.map(r => ({ id: r.id, importId: r.import_id, sourceKey: r.source_key, kind: r.kind, sourceQuote: r.source_quote, fields: JSON.parse(r.fields), state: r.state, evidenceId: r.evidence_id, revision: r.revision }));
   return { ...record, proposals };
 }
@@ -107,7 +107,7 @@ export function reviewProposal(db: Database.Database, id: string, revision: numb
     if (action === "approve") {
       validateApproval(row.kind, fields);
       const matches = findMatches(db, row.kind, fields);
-      if (matches.length && (row.kind === "skill" || !acknowledgeMatch)) throw new Error(row.kind === "skill" ? "This skill already exists. Review the existing record or reject this proposal." : "A possible duplicate or conflicting fact exists. Review it and acknowledge before creating a separate record.");
+      if (matches.length && (row.kind === "skill" || !acknowledgeMatch)) throw new Error(row.kind === "skill" ? "This skill already exists. Review the existing record or reject this proposal." : "A possible duplicate or conflicting fact exists. Save the draft to inspect matches, then acknowledge before creating a separate record.");
       const record = db.prepare("SELECT name FROM resume_imports WHERE id=?").get(row.import_id) as { name: string };
       evidenceId = insertEvidence(db, row.kind, fields, `${record.name.slice(0, 120)} · import ${row.import_id}`);
     }
