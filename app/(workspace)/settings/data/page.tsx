@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { readdir } from "node:fs/promises";
-import path from "node:path";
 import { connection } from "next/server";
 import { sqlite } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { BackupControls } from "./backup-controls";
+import { accessMode } from "@/lib/auth/config";
+import { storagePaths } from "@/lib/storage/config";
 
 export default async function DataSettingsPage({
   searchParams,
@@ -12,18 +13,18 @@ export default async function DataSettingsPage({
   searchParams: Promise<{ page?: string; kind?: string }>;
 }) {
   await connection();
+  const hosted = accessMode() === "hosted";
   const query = await searchParams;
   const recoveryFiles = await readdir(
-    path.join(
-      process.cwd(),
-      ".data",
-      "recovery",
-      path.basename(process.env.DATABASE_FILE ?? "headhunter.db"),
-    ),
+    storagePaths().recovery,
   )
     .then((files) =>
       files
-        .filter((name) => /^before-restore-[a-f0-9-]+\.json$/.test(name))
+        .filter((name) =>
+          hosted
+            ? /^before-restore-[a-f0-9-]+\.hhbackup$/.test(name)
+            : /^before-restore-[a-f0-9-]+\.json$/.test(name),
+        )
         .slice(-50),
     )
     .catch((error: NodeJS.ErrnoException) => {
@@ -72,7 +73,7 @@ export default async function DataSettingsPage({
           behind it.
         </p>
       </header>
-      <BackupControls recoveryFiles={recoveryFiles} />
+      <BackupControls encrypted={hosted} recoveryFiles={recoveryFiles} />
       <section className="mt-10 border-t pt-8">
         <h2 className="text-xl font-semibold tracking-tight">Audit history</h2>
         <p className="mt-2 text-sm text-muted-foreground">

@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export function BackupControls({
+  encrypted = false,
   recoveryFiles = [],
 }: {
+  encrypted?: boolean;
   recoveryFiles?: string[];
 }) {
   const router = useRouter();
@@ -50,7 +52,7 @@ export function BackupControls({
         link.download =
           operation === "recovery"
             ? String(selected)
-            : `headhunter-${new Date().toISOString().slice(0, 10)}.json`;
+            : `headhunter-${new Date().toISOString().slice(0, 10)}.${encrypted ? "hhbackup" : "json"}`;
         link.click();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
         setMessage("Backup downloaded.");
@@ -89,9 +91,11 @@ export function BackupControls({
         </h2>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
           Download all records, original job descriptions, resume and
-          application snapshots, reminders, and history in one portable JSON
-          file. It contains private data in readable form; store it somewhere
-          you trust. Referenced external files are not included.
+          application snapshots, reminders, and history in one portable file.
+          {encrypted
+            ? " Hosted exports are encrypted with the installation backup key. Keep that key separately."
+            : " Local exports contain private data in readable form; store them somewhere you trust."}{" "}
+          Referenced external files are not included.
         </p>
         <Button className="mt-4" disabled={busy} onClick={() => run("export")}>
           Download backup
@@ -112,7 +116,7 @@ export function BackupControls({
         <Input
           id="backup-file"
           type="file"
-          accept=".json,application/json"
+          accept=".json,.hhbackup,application/json"
           disabled={busy}
           className="mt-2 max-w-lg"
           onChange={async (event) => {
@@ -136,7 +140,7 @@ export function BackupControls({
               await run("preview", parsed);
             } catch {
               setIsError(true);
-              setMessage("This file is not valid JSON.");
+              setMessage("This file is not a valid Headhunter backup.");
               setBusy(false);
             }
           }}
