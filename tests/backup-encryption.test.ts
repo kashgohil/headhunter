@@ -15,7 +15,10 @@ describe("hosted backup encryption", () => {
     const encrypted = encryptBackup({ private: true }, "ab".repeat(32));
     expect(() =>
       decryptBackup(
-        { ...encrypted, ciphertext: `${encrypted.ciphertext.slice(0, -1)}A` },
+        {
+          ...encrypted,
+          ciphertext: `${encrypted.ciphertext[0] === "A" ? "B" : "A"}${encrypted.ciphertext.slice(1)}`,
+        },
         "ab".repeat(32),
       ),
     ).toThrow("could not be decrypted");
