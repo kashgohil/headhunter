@@ -46,6 +46,15 @@ export default async function InterviewPage({
         <time className="mt-3 block font-mono text-sm">
           {round.scheduledAt.toISOString().slice(0, 16).replace("T", " ")} UTC
         </time>
+        {data.calendarLink ? (
+          <div className="mt-4 max-w-xl rounded-md border bg-muted/35 px-4 py-3 text-sm">
+            <p className="font-medium">Linked to {data.calendarLink.calendarName}</p>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              {new Intl.DateTimeFormat("en", { year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: data.calendarLink.event.timeZone, timeZoneName: "short" }).format(data.calendarLink.event.startAt)}
+              {data.calendarLink.lastSuccessAt ? ` · synced ${data.calendarLink.lastSuccessAt.toISOString().slice(0, 16).replace("T", " ")} UTC` : " · awaiting first sync"}
+            </p>
+          </div>
+        ) : null}
         <Link
           href={`/jobs/${job.id}#application-workspace-heading`}
           className="mt-3 block text-sm text-primary"

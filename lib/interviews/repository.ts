@@ -10,6 +10,10 @@ import {
   careerStories,
   careerAchievements,
   careerExperiences,
+  calendarConnections,
+  calendarEventLinks,
+  externalCalendarEvents,
+  externalCalendars,
 } from "@/lib/db/schema";
 import { getOpportunityResearch } from "@/lib/research/repository";
 import type { Evidence } from "./preparation";
@@ -34,7 +38,7 @@ export async function getInterview(id: string) {
     .where(eq(applicationInterviews.id, id))
     .get();
   if (!round) return null;
-  const [job, plan, sessions, stories, achievements, experiences, research] =
+  const [job, plan, sessions, stories, achievements, experiences, research, calendarLink] =
     await Promise.all([
       db.select().from(jobs).where(eq(jobs.id, round.jobId)).get(),
       db
@@ -54,6 +58,13 @@ export async function getInterview(id: string) {
       db.select().from(careerAchievements),
       db.select().from(careerExperiences),
       getOpportunityResearch(round.jobId),
+      db.select({ event: externalCalendarEvents, calendarName: externalCalendars.name, lastSuccessAt: calendarConnections.lastSuccessAt })
+        .from(calendarEventLinks)
+        .innerJoin(externalCalendarEvents, eq(externalCalendarEvents.id, calendarEventLinks.eventId))
+        .innerJoin(externalCalendars, eq(externalCalendars.id, externalCalendarEvents.calendarId))
+        .innerJoin(calendarConnections, eq(calendarConnections.id, externalCalendars.connectionId))
+        .where(eq(calendarEventLinks.interviewId, id))
+        .get(),
     ]);
   if (!job) return null;
   const usableAchievements = new Set(
@@ -93,5 +104,5 @@ export async function getInterview(id: string) {
       usable: usableAchievements.has(achievement.id),
     })),
   ];
-  return { round, job, plan, sessions, evidence, research };
+  return { round, job, plan, sessions, evidence, research, calendarLink };
 }
