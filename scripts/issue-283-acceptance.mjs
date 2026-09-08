@@ -1,0 +1,66 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import Database from 'better-sqlite3';
+import { createImport } from '../lib/resume-import/storage.ts';
+const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright-core');
+const databasePath = process.env.ACCEPTANCE_DATABASE;
+const base = process.env.ACCEPTANCE_URL;
+assert.ok(databasePath && path.basename(databasePath).startsWith('issue283-'), 'Provide an isolated issue283-* database');
+assert.ok(base && ['localhost', '127.0.0.1'].includes(new URL(base).hostname), 'Provide an isolated local server URL');
+const db = new Database(databasePath, { fileMustExist: true });
+const nonce = Date.now().toString();
+const marker = createImport(db, {name:`Server check ${nonce}`,format:'text',text:`Server check ${nonce}`});
+const browser = await chromium.launch({executablePath:process.env.CHROMIUM_EXECUTABLE,headless:true});
+const page = await browser.newPage({viewport:{width:1440,height:1000},reducedMotion:'reduce'});
+page.setDefaultTimeout(15000);
+const go = route => page.goto(base+route,{waitUntil:'networkidle'});
+const first = () => page.locator('details').filter({has:page.getByRole('button',{name:'Approve fact',exact:true})}).first();
+const choose = async (name,value) => {await page.getByRole('combobox',{name,exact:true}).click();await page.getByRole('option',{name:value,exact:true}).click();};
+const approve = async () => {
+ const progress = await page.locator('main header p').innerText();
+ for (const checkbox of await first().getByRole('checkbox').all()) await checkbox.check();
+ await first().getByRole('button',{name:'Approve fact',exact:true}).click();
+ await page.waitForFunction(previous => document.querySelector('main header p')?.textContent !== previous, progress);
+};
+try {
+ await go(`/career-profile/import/${marker}`);
+ await page.getByRole('heading',{name:`Review Server check ${nonce}`,exact:true}).waitFor();
+ const source = readFileSync(new URL('../tests/fixtures/resume-import/resume.txt',import.meta.url),'utf8').replaceAll('Fixture Labs',`Fixture Labs ${nonce}`).replace('TypeScript, React',`Fixture skill ${nonce}, Rejected skill ${nonce}`);
+ await go('/career-profile/import');await page.getByRole('button',{name:'Paste text',exact:true}).click();
+ await page.getByLabel('Source name',{exact:true}).fill(`Acceptance ${nonce}`);await page.getByLabel('Resume text',{exact:true}).fill(source);
+ db.exec("CREATE TRIGGER issue283_save_failure BEFORE INSERT ON resume_imports BEGIN SELECT RAISE(ABORT, 'fixture failure'); END");
+ try {
+  await page.getByRole('button',{name:'Extract for review',exact:true}).click();await page.getByRole('alert').waitFor();
+  assert.equal(await page.getByLabel('Resume text',{exact:true}).inputValue(),source);
+  await page.getByRole('button',{name:'Use recovered text',exact:true}).waitFor();
+ } finally {db.exec('DROP TRIGGER IF EXISTS issue283_save_failure');}
+ await page.getByRole('button',{name:'Extract for review',exact:true}).click();await page.waitForURL(/\/import\/[^/]+$/);
+ const importUrl=page.url(), importId=importUrl.split('/').pop();
+ assert.equal(db.prepare('select count(*) n from resume_import_proposals where import_id=? and evidence_id is not null').get(importId).n,0);
+ await approve();await page.getByLabel('Problem or context',{exact:true}).waitFor();
+ await choose('Related experience',`Senior Engineer · Fixture Labs ${nonce}`);
+ await page.getByLabel('Problem or context',{exact:true}).fill('Requests were difficult to track.');await page.getByLabel('Result',{exact:true}).fill('The team tracked requests in one place.');
+ await first().getByRole('button',{name:'Save draft',exact:true}).click();await first().getByRole('status').filter({hasText:'Draft saved.'}).waitFor();
+ await page.reload({waitUntil:'networkidle'});assert.equal(await page.getByLabel('Result',{exact:true}).inputValue(),'The team tracked requests in one place.');
+ await approve();await page.getByLabel('Skill',{exact:true}).filter({visible:true}).waitFor();
+ await choose('Last used','Using currently');await choose('Proficiency','Working knowledge');await approve();
+ await first().getByRole('button',{name:'Reject',exact:true}).click();await page.getByLabel('Qualification',{exact:true}).filter({visible:true}).waitFor();await approve();
+ await first().getByRole('button',{name:'Reject',exact:true}).click();await page.getByRole('heading',{name:'All proposals reviewed',exact:true}).waitFor();
+ await page.getByRole('button',{name:'Retry fact extraction',exact:true}).click();await page.getByRole('status').filter({hasText:'0 new proposals'}).waitFor();
+ const approved=db.prepare("select kind,evidence_id from resume_import_proposals where import_id=? and state='approved'").all(importId);assert.equal(approved.length,4);
+ await page.getByRole('link',{name:'View saved fact',exact:true}).first().click();await page.getByRole('heading',{name:'Original resume excerpt',exact:true}).waitFor();
+ await go('/jobs/new');await page.getByLabel('Company',{exact:true}).fill(`Acceptance employer ${nonce}`);await page.getByLabel('Role title',{exact:true}).fill('Engineer');await page.getByLabel('Original job description',{exact:true}).fill('Build internal workflow systems with TypeScript.');await page.getByRole('button',{name:'Save job',exact:true}).click();await page.waitForURL(/\/jobs\/(?!new$)[^/]+$/);
+ await go('/resumes');await page.locator('summary').filter({hasText:'Create base resume'}).click();await page.getByLabel('Profile name',{exact:true}).fill(`Imported profile ${nonce}`);await page.getByLabel('Role family',{exact:true}).fill('Engineering');
+ for(const fact of approved)await page.locator(`button[role="checkbox"][value="${fact.evidence_id}"]`).check();
+ await page.getByRole('button',{name:'Save base resume',exact:true}).click();await page.getByRole('status').filter({hasText:'Base resume saved.'}).waitFor();
+ await choose('Base resume',`Imported profile ${nonce}`);await choose('Target job',`Engineer · Acceptance employer ${nonce}`);await page.getByRole('button',{name:'Generate review draft',exact:true}).click();await page.waitForURL(/\/resumes\/[^/]+$/);
+ const draftUrl=page.url();await page.getByRole('button',{name:'Accept',exact:true}).first().click();await page.getByRole('button',{name:'Accept section',exact:true}).click();
+ const pdf=await page.request.get(draftUrl+'/pdf');assert.equal(pdf.status(),200);assert.ok((await pdf.body()).subarray(0,5).equals(Buffer.from('%PDF-')));
+ await page.getByRole('button',{name:'Mark submitted',exact:true}).click();await page.getByRole('button',{name:'Immutable snapshot',exact:true}).waitFor();
+ await page.goto(importUrl,{waitUntil:'networkidle'});await page.setViewportSize({width:375,height:812});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await page.screenshot({path:process.env.ACCEPTANCE_SCREENSHOT || '/tmp/issue283-mobile.png',fullPage:true});
+ await go('/career-profile/import');await page.getByLabel('Resume file',{exact:true}).setInputFiles(new URL('../tests/fixtures/resume-import/resume.docx',import.meta.url).pathname);await page.getByRole('button',{name:'Extract for review',exact:true}).click();await page.waitForURL(/\/import\/[^/]+$/);const docxUrl=page.url();
+ await go('/career-profile/import');await page.getByLabel('Resume file',{exact:true}).setInputFiles(new URL('../tests/fixtures/resume-import/resume.docx',import.meta.url).pathname);await page.getByRole('button',{name:'Extract for review',exact:true}).click();await page.waitForURL(docxUrl);
+ await go('/career-profile/import');await page.getByLabel('Resume file',{exact:true}).setInputFiles(new URL('../tests/fixtures/resume-import/encrypted.pdf',import.meta.url).pathname);await page.getByRole('button',{name:'Extract for review',exact:true}).click();await page.getByRole('alert').filter({hasText:/password|encrypted/i}).waitFor();
+ console.log('PASS persistence-failure recovery, selective review, saved draft, retry, source links, imported evidence → base → tailored draft → PDF → snapshot, mobile, DOCX retry identity, encrypted PDF error');
+} catch(error) { console.error(await page.locator('main').innerText()); throw error; } finally {await browser.close();db.close();}
