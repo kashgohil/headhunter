@@ -41,3 +41,9 @@ it('handles real DOCX, encrypted PDF and image-only PDF fixtures', async () => {
  await assert.rejects(readResumeFile(fixture('encrypted.pdf'), 'encrypted.pdf'), /password|encrypted/i);
  await assert.rejects(readResumeFile(fixture('image-only.pdf'), 'image-only.pdf'), /No readable text/);
 });
+
+it('preserves readable pages and warns when other pages contain only images', async () => {
+ const result = await readResumeFile(readFileSync(new URL('./fixtures/resume-import/partial.pdf', import.meta.url)), 'partial.pdf');
+ assert.match(result.text, /Fixture Labs/);
+ assert.match(result.warning, /1 page\(s\) contained no readable text/);
+});
