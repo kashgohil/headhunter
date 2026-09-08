@@ -21,17 +21,40 @@ function overlapScore(left: string, right: string) {
   return score;
 }
 
+function withoutTerminalPunctuation(value: string) {
+  return value.trim().replace(/[.!?\s]+$/, "");
+}
+
+function sentence(value: string) {
+  const trimmed = withoutTerminalPunctuation(value);
+  const firstWord = trimmed.split(/\s/, 1)[0] ?? "";
+  const shouldCapitalize = /^\p{Ll}/u.test(firstWord) && !/\p{Lu}/u.test(firstWord.slice(1));
+  const normalized = shouldCapitalize
+    ? `${trimmed[0]?.toLocaleUpperCase()}${trimmed.slice(1)}`
+    : trimmed;
+  return `${normalized}.`;
+}
+
+function distinctMetric(achievement: TailoringAchievement) {
+  const metric = achievement.measurableOutcome?.trim();
+  if (!metric) return null;
+  const comparable = (value: string) => withoutTerminalPunctuation(value).toLocaleLowerCase();
+  return comparable(metric) === comparable(achievement.result) ? null : metric;
+}
+
 function originalBullet(achievement: TailoringAchievement) {
   const outcome = achievement.measurableOutcome || achievement.result;
   return `${achievement.action.replace(/[.\s]+$/, "")}; ${outcome.replace(/^./, (letter) => letter.toLowerCase()).replace(/[.\s]+$/, "")}.`;
 }
 
 function proposedBullet(achievement: TailoringAchievement, regeneration = 0) {
-  const action = achievement.action.replace(/[.\s]+$/, "");
-  const result = achievement.result.replace(/[.\s]+$/, "");
-  const metric = achievement.measurableOutcome?.replace(/[.\s]+$/, "");
-  if (regeneration % 2 === 1) return `${action}, resulting in ${metric || result}.`;
-  return `${action} to ${result.replace(/^./, (letter) => letter.toLowerCase())}${metric && metric.toLowerCase() !== result.toLowerCase() ? ` — ${metric}` : ""}.`;
+  const metric = distinctMetric(achievement);
+  if (regeneration % 2 === 1) {
+    const outcome = `Recorded outcome: ${withoutTerminalPunctuation(achievement.result)}.`;
+    const measure = metric ? ` Recorded measure: ${withoutTerminalPunctuation(metric)}.` : "";
+    return `${sentence(achievement.action)} ${outcome}${measure}`;
+  }
+  return [achievement.action, achievement.result, metric].filter((value): value is string => Boolean(value)).map(sentence).join(" ");
 }
 
 function evidenceRisk(item: TailoringEvidenceLike): ResumeRisk {
@@ -63,7 +86,7 @@ export function createBulletSuggestions(achievements: TailoringAchievement[], jo
       achievementId: achievement.id,
       originalText: originalBullet(achievement),
       proposedText: proposedBullet(achievement),
-      reason: "Lead with the action and connect it directly to the evidenced outcome.",
+      reason: "Lead with the action and present the recorded outcome as a separate evidence-backed fact.",
       requirementAddressed: pickRequirement(achievement, job),
       evidenceIds: [achievement.id, achievement.experienceId],
       confidence: achievement.verificationState === "verified" ? "high" : "medium",

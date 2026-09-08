@@ -38,6 +38,38 @@ describe("resume tailoring", () => {
     expect(regenerateBullet(achievements[0], 1)).not.toEqual(regenerateBullet(achievements[0], 2));
   });
 
+  test.each([
+    {
+      shape: "full sentence",
+      achievement: {
+        ...achievements[0],
+        action: "Built a TypeScript and React workflow tool backed by SQLite.",
+        result: "The team could track requests in one place.",
+        measurableOutcome: null,
+      },
+      proposed: "Built a TypeScript and React workflow tool backed by SQLite. The team could track requests in one place.",
+    },
+    {
+      shape: "verb phrase",
+      achievement: { ...achievements[0], measurableOutcome: null },
+      proposed: "Led platform strategy. Improved activation.",
+    },
+    {
+      shape: "metric",
+      achievement: {
+        ...achievements[0],
+        result: "improved activation",
+        measurableOutcome: "18% increase in activation",
+      },
+      proposed: "Led platform strategy. Improved activation. 18% increase in activation.",
+    },
+  ])("keeps $shape outcomes grammatical and evidence-bound", ({ achievement, proposed }) => {
+    const suggestion = createBulletSuggestions([achievement], job)[0];
+    expect(suggestion?.proposedText).toBe(proposed);
+    expect(suggestion?.proposedText).not.toMatch(/\b(?:to|resulting in)\b/i);
+    expect(regenerateBullet(achievement, 1)).not.toMatch(/\b(?:to|resulting in)\b/i);
+  });
+
   test("summary includes only stored skills and exposes its evidence ids", () => {
     const summary = createSummary("Product", "Product leader", [{ id: "e", title: "PM", company: "Acme", verificationState: "verified" }], [{ id: "s", name: "Analytics", verificationState: "verified" }], job);
     expect(summary.text).toContain("Analytics");
