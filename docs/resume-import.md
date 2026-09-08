@@ -11,3 +11,13 @@ Import and extraction never verify career facts. Explicit approval creates a new
 Duplicates/conflicts are checked against current evidence at approval time. Existing evidence, including locked, archived, or prohibited facts, is never overwritten. Likely matches are shown for review; skills with an existing normalized name cannot be imported again. Other possible matches require explicit acknowledgment before creating a separate fact. Approving an achievement requires linking an existing usable experience (or approving its proposed experience first).
 
 This feature retains the application's trusted-local-access boundary. Hosted access and tokens remain ISSUE-285; identity and Unicode PDF export remain ISSUE-286.
+
+## Using the importer
+
+Open **Career profile → Import a resume**, upload a PDF/DOCX, or choose **Paste text**. The review keeps each source excerpt beside its editable fields. Approve employment before an achievement that belongs to it. Use **Save draft** before leaving an unfinished proposal; unsaved typing is not an autosaved draft. Approved and rejected decisions are final for that proposal. Further corrections to approved facts happen in the evidence bank.
+
+Section extraction is deliberately conservative: it recognizes English headings, common month/year date ranges, employment bullets, and skill lists. It does not infer missing months, skill proficiency, achievement results, or credentials. Multi-column PDFs and unusual document layouts may have imperfect reading order. Inspect the recovered source, correct proposals, and use **Add a missed fact** with an exact source excerpt for anything omitted. Up to 150 proposals are created per import; reaching the limit is disclosed. Retry works on saved text, preserving drafts and decisions. Re-uploading the identical file reopens its existing review.
+
+A failed database save leaves the selected file/pasted input available and offers recovered text. A partly readable PDF retains recovered pages with a warning; image-only and encrypted files require an unencrypted export or pasted text. The original file stays the user's responsibility because only extracted text is stored. The PDF reader requires Node 22.13+ or a supported Node 24 release; validation used Node 24.13.0.
+
+See [ISSUE-283 validation](issue-283-validation.md) for coverage and replay instructions.

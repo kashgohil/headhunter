@@ -89,7 +89,7 @@ Add experience -> link a structured achievement -> add contextual skills
 - Potential duplicate records, conflicting experience dates, stale skills, and metrics without source notes are visible in evidence health.
 - Every create, edit, and evidence-state change produces an audit event.
 
-Resume import and AI extraction can populate these same records later without bypassing their review state or provenance.
+Resume import now populates these records through local PDF/DOCX/text extraction and explicit fact-by-fact approval. Imports preserve recovered source, editable proposals, review decisions, and provenance without changing career evidence until approval. See [resume import](resume-import.md) for processing limits, duplicate safeguards, and recovery. AI extraction remains deferred.
 
 ## Fourth vertical slice
 
