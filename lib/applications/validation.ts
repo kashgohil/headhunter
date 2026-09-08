@@ -4,6 +4,12 @@ import { pipelineStageDefinitions } from "@/lib/applications/types";
 
 const optionalText = (maximum: number) => z.string().trim().max(maximum).transform((value) => value || null);
 
+// Browser datetime-local controls carry no offset. These forms explicitly use UTC,
+// matching the interview room; normalize before persistence on any server timezone.
+const utcDateTime = z.string().trim()
+  .transform((value) => /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?$/.test(value) ? `${value.length === 16 ? `${value}:00` : value}Z` : value)
+  .pipe(z.iso.datetime({ offset: true, error: "Enter a valid date and time (UTC)." }));
+
 export const standardStageSchema = z.enum(pipelineStageDefinitions.map((stage) => stage.key));
 export const applicationStageSchema = z.string().trim().min(1).max(100).regex(/^[a-z0-9_-]+$/);
 
@@ -35,7 +41,7 @@ export const customStageSchema = z.object({
 
 export const interviewSchema = z.object({
   label: z.string().trim().min(2, "Name the interview round.").max(120),
-  scheduledAt: z.string().trim().refine((value) => !Number.isNaN(Date.parse(value)), "Add the interview date and time."),
+  scheduledAt: utcDateTime,
   notes: optionalText(1000),
 });
 
@@ -72,5 +78,5 @@ export const submissionSchema = z.object({
   source: optionalText(500),
   referral: optionalText(240),
   confirmationId: optionalText(240),
-  submittedAt: z.string().trim().refine((value) => !Number.isNaN(Date.parse(value)), "Add the submission date and time."),
+  submittedAt: utcDateTime,
 });
