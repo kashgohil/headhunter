@@ -347,6 +347,12 @@ export const auditEvents = sqliteTable("audit_events", {
   action: text("action", { enum: [
     "workspace.restored",
     "notifications.updated",
+    "analytics.annotated",
+    "experiment.created",
+    "experiment.updated",
+    "experiment.running",
+    "experiment.completed",
+    "experiment.cancelled",
     "weekly_review.created",
     "weekly_review.updated",
     "weekly_review.completed",
@@ -386,6 +392,7 @@ export const auditEvents = sqliteTable("audit_events", {
   entityType: text("entity_type", { enum: [
     "workspace",
     "notification_preferences",
+    "experiment",
     "weekly_review",
     "job",
     "search_strategy",
@@ -591,6 +598,24 @@ export const weeklyReviews = sqliteTable("weekly_reviews", {
   weekStart: text("week_start").notNull().unique(),
   snapshot: text("snapshot", { mode: "json" }).$type<import("@/lib/weekly-review/model").WeeklySnapshot>().notNull(),
   edits: text("edits", { mode: "json" }).$type<import("@/lib/weekly-review/storage").ReviewEdits>().notNull(),
+  revision: integer("revision").notNull().default(1),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const analyticsAnnotations = sqliteTable("analytics_annotations", {
+  jobId: text("job_id").primaryKey().references(() => jobs.id, { onDelete: "cascade" }),
+  valuesJson: text("values_json").notNull(),
+  revision: integer("revision").notNull().default(1),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const analyticsExperiments = sqliteTable("analytics_experiments", {
+  id: text("id").primaryKey(),
+  plan: text("plan").notNull(),
+  status: text("status", { enum: ["planned", "running", "completed", "cancelled"] }).notNull().default("planned"),
+  notes: text("notes").notNull().default(""),
+  result: text("result"),
   revision: integer("revision").notNull().default(1),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
   updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
