@@ -15,6 +15,13 @@ import { Badge } from "@/components/ui/badge";
 import { AlertControls } from "@/app/(workspace)/command-center/alert-controls";
 import { savePreferences } from "./actions";
 export const metadata = { title: "Notifications" };
+function dueTime(alert: { kind: string; dueAt: string | null }, timeZone: string) {
+  if (!alert.dueAt) return null;
+  return new Intl.DateTimeFormat("en", alert.kind === "interview"
+    ? { year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone, timeZoneName: "short" }
+    : { year: "numeric", month: "short", day: "numeric", timeZone })
+    .format(new Date(alert.dueAt));
+}
 export default async function NotificationsPage() {
   await connection();
   const overview = await getCommandCenter();
@@ -70,6 +77,7 @@ export default async function NotificationsPage() {
                 <p className="mt-1 text-sm text-muted-foreground">
                   {alert.source}
                 </p>
+                {dueTime(alert, preferences.timeZone) ? <time dateTime={alert.dueAt!} className="mt-2 block font-mono text-xs">{dueTime(alert, preferences.timeZone)}</time> : null}
                 <p className="mt-2 text-sm leading-6">{alert.reason}</p>
                 <div className="mt-3">
                   <AlertControls alertKey={alert.key} />
@@ -91,6 +99,7 @@ export default async function NotificationsPage() {
                     <p className="mt-1 text-muted-foreground">
                       {notificationReason(alert, preferences, overview.now)}
                     </p>
+                    {dueTime(alert, preferences.timeZone) ? <time dateTime={alert.dueAt!} className="mt-1 block font-mono text-xs text-muted-foreground">{dueTime(alert, preferences.timeZone)}</time> : null}
                   </li>
                 ))}
               </ul>
@@ -110,6 +119,7 @@ export default async function NotificationsPage() {
                     <p className="text-muted-foreground">
                       {alert.hiddenReason}
                     </p>
+                    {dueTime(alert, preferences.timeZone) ? <time dateTime={alert.dueAt!} className="font-mono text-xs text-muted-foreground">{dueTime(alert, preferences.timeZone)}</time> : null}
                     <AlertControls alertKey={alert.key} hidden />
                   </li>
                 ))}
