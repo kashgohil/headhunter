@@ -1,5 +1,7 @@
 "use server";
 
+
+import { requireOwner } from "@/lib/auth/server";
 import { revalidatePath } from "next/cache";
 
 import { createCustomStage, updatePipelineMetadata } from "@/lib/applications/pipeline";
@@ -8,6 +10,7 @@ import { customStageSchema, pipelineMetadataSchema } from "@/lib/applications/va
 export type PipelineActionState = { success?: boolean; message?: string };
 
 export async function createCustomStageAction(_state: PipelineActionState, formData: FormData): Promise<PipelineActionState> {
+  await requireOwner();
   const parsed = customStageSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { message: parsed.error.issues[0]?.message ?? "Check the stage." };
   try {
@@ -20,6 +23,7 @@ export async function createCustomStageAction(_state: PipelineActionState, formD
 }
 
 export async function updatePipelineMetadataAction(jobId: string, formData: FormData) {
+  await requireOwner();
   const parsed = pipelineMetadataSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return;
   await updatePipelineMetadata(jobId, parsed.data);

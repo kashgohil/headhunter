@@ -1,5 +1,7 @@
 "use server";
 
+
+import { requireOwner } from "@/lib/auth/server";
 import { revalidatePath } from "next/cache";
 
 import type { FormState } from "@/components/action-form";
@@ -14,6 +16,7 @@ function refreshCalendarSurfaces(interviewId?: string) {
 }
 
 export async function selectCalendarsAction(_state: FormState, form: FormData): Promise<FormState> {
+  await requireOwner();
   try {
     await selectCalendars(form.getAll("calendarIds").map(String));
     refreshCalendarSurfaces();
@@ -24,6 +27,7 @@ export async function selectCalendarsAction(_state: FormState, form: FormData): 
 }
 
 export async function syncCalendarAction(): Promise<FormState> {
+  await requireOwner();
   try {
     const count = await syncGoogleCalendar();
     refreshCalendarSurfaces();
@@ -35,6 +39,7 @@ export async function syncCalendarAction(): Promise<FormState> {
 }
 
 export async function linkExistingRoundAction(_state: FormState, form: FormData): Promise<FormState> {
+  await requireOwner();
   const eventId = String(form.get("eventId") ?? "");
   const interviewId = String(form.get("interviewId") ?? "");
   try {
@@ -47,6 +52,7 @@ export async function linkExistingRoundAction(_state: FormState, form: FormData)
 }
 
 export async function linkOpportunityAction(_state: FormState, form: FormData): Promise<FormState> {
+  await requireOwner();
   const eventId = String(form.get("eventId") ?? "");
   const jobId = String(form.get("jobId") ?? "");
   try {
@@ -59,6 +65,7 @@ export async function linkOpportunityAction(_state: FormState, form: FormData): 
 }
 
 export async function disconnectCalendarAction(): Promise<FormState> {
+  await requireOwner();
   const result = await disconnectGoogleCalendar();
   refreshCalendarSurfaces();
   return {

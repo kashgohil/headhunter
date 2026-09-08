@@ -1,5 +1,7 @@
 "use server";
 
+
+import { requireOwner } from "@/lib/auth/server";
 import { revalidatePath } from "next/cache";
 
 import { saveSearchStrategy as persistSearchStrategy } from "@/lib/search-strategy/repository";
@@ -38,6 +40,7 @@ export async function saveSearchStrategy(
   _previousState: SearchStrategyState,
   formData: FormData,
 ): Promise<SearchStrategyState> {
+  await requireOwner();
   // Authentication belongs here before this app is exposed beyond local use.
   const parsed = searchStrategySchema.safeParse({
     primaryTitle: formData.get("primaryTitle"),

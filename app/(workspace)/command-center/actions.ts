@@ -1,5 +1,7 @@
 "use server";
 
+
+import { requireOwner } from "@/lib/auth/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { updateAlertPreference } from "@/lib/command-center/repository";
@@ -8,6 +10,7 @@ export async function updateAlertAction(
   _state: { message?: string },
   formData: FormData,
 ) {
+  await requireOwner();
   const parsed = z
     .object({
       key: z.string().min(1).max(2000),

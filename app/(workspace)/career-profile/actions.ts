@@ -1,5 +1,7 @@
 "use server";
 
+
+import { requireOwner } from "@/lib/auth/server";
 import { revalidatePath } from "next/cache";
 
 import {
@@ -129,6 +131,7 @@ export async function createExperience(
   _previousState: CareerProfileActionState,
   formData: FormData,
 ): Promise<CareerProfileActionState> {
+  await requireOwner();
   const parsed = experienceSchema.safeParse(experienceData(formData));
   if (!parsed.success) return { errors: parsed.error.flatten().fieldErrors, message: "Check the highlighted fields." };
 
@@ -146,6 +149,7 @@ export async function updateExperience(
   _previousState: CareerProfileActionState,
   formData: FormData,
 ): Promise<CareerProfileActionState> {
+  await requireOwner();
   const parsed = experienceSchema.safeParse(experienceData(formData));
   if (!parsed.success) return { errors: parsed.error.flatten().fieldErrors, message: "Check the highlighted fields." };
 
@@ -162,6 +166,7 @@ export async function createAchievement(
   _previousState: CareerProfileActionState,
   formData: FormData,
 ): Promise<CareerProfileActionState> {
+  await requireOwner();
   const parsed = achievementSchema.safeParse(achievementData(formData));
   if (!parsed.success) return { errors: parsed.error.flatten().fieldErrors, message: "Check the highlighted fields." };
 
@@ -179,6 +184,7 @@ export async function updateAchievement(
   _previousState: CareerProfileActionState,
   formData: FormData,
 ): Promise<CareerProfileActionState> {
+  await requireOwner();
   const parsed = achievementSchema.safeParse(achievementData(formData));
   if (!parsed.success) return { errors: parsed.error.flatten().fieldErrors, message: "Check the highlighted fields." };
 
@@ -195,6 +201,7 @@ export async function createSkill(
   _previousState: CareerProfileActionState,
   formData: FormData,
 ): Promise<CareerProfileActionState> {
+  await requireOwner();
   const parsed = skillSchema.safeParse(skillData(formData));
   if (!parsed.success) return { errors: parsed.error.flatten().fieldErrors, message: "Check the highlighted fields." };
 
@@ -212,6 +219,7 @@ export async function updateSkill(
   _previousState: CareerProfileActionState,
   formData: FormData,
 ): Promise<CareerProfileActionState> {
+  await requireOwner();
   const parsed = skillSchema.safeParse(skillData(formData));
   if (!parsed.success) return { errors: parsed.error.flatten().fieldErrors, message: "Check the highlighted fields." };
 
@@ -228,6 +236,7 @@ export async function createProfileItem(
   _previousState: CareerProfileActionState,
   formData: FormData,
 ): Promise<CareerProfileActionState> {
+  await requireOwner();
   const parsed = profileItemSchema.safeParse(profileItemData(formData));
   if (!parsed.success) return { errors: parsed.error.flatten().fieldErrors, message: "Check the highlighted fields." };
   try {
@@ -242,6 +251,7 @@ export async function updateProfileItem(
   _previousState: CareerProfileActionState,
   formData: FormData,
 ): Promise<CareerProfileActionState> {
+  await requireOwner();
   const parsed = profileItemSchema.safeParse(profileItemData(formData));
   if (!parsed.success) return { errors: parsed.error.flatten().fieldErrors, message: "Check the highlighted fields." };
   try {
@@ -255,6 +265,7 @@ export async function createStory(
   _previousState: CareerProfileActionState,
   formData: FormData,
 ): Promise<CareerProfileActionState> {
+  await requireOwner();
   const parsed = storySchema.safeParse(storyData(formData));
   if (!parsed.success) return { errors: parsed.error.flatten().fieldErrors, message: "Check the highlighted fields." };
   try {
@@ -269,6 +280,7 @@ export async function updateStory(
   _previousState: CareerProfileActionState,
   formData: FormData,
 ): Promise<CareerProfileActionState> {
+  await requireOwner();
   const parsed = storySchema.safeParse(storyData(formData));
   if (!parsed.success) return { errors: parsed.error.flatten().fieldErrors, message: "Check the highlighted fields." };
   try {
@@ -282,6 +294,7 @@ export async function createAnswer(
   _previousState: CareerProfileActionState,
   formData: FormData,
 ): Promise<CareerProfileActionState> {
+  await requireOwner();
   const parsed = answerSchema.safeParse(answerData(formData));
   if (!parsed.success) return { errors: parsed.error.flatten().fieldErrors, message: "Check the highlighted fields." };
   try {
@@ -296,6 +309,7 @@ export async function updateAnswer(
   _previousState: CareerProfileActionState,
   formData: FormData,
 ): Promise<CareerProfileActionState> {
+  await requireOwner();
   const parsed = answerSchema.safeParse(answerData(formData));
   if (!parsed.success) return { errors: parsed.error.flatten().fieldErrors, message: "Check the highlighted fields." };
   try {
@@ -309,6 +323,7 @@ export async function createVoiceProfile(
   _previousState: CareerProfileActionState,
   formData: FormData,
 ): Promise<CareerProfileActionState> {
+  await requireOwner();
   const parsed = voiceProfileSchema.safeParse(voiceProfileData(formData));
   if (!parsed.success) return { errors: parsed.error.flatten().fieldErrors, message: "Check the highlighted fields." };
   try {
@@ -323,6 +338,7 @@ export async function updateVoiceProfile(
   _previousState: CareerProfileActionState,
   formData: FormData,
 ): Promise<CareerProfileActionState> {
+  await requireOwner();
   const parsed = voiceProfileSchema.safeParse(voiceProfileData(formData));
   if (!parsed.success) return { errors: parsed.error.flatten().fieldErrors, message: "Check the highlighted fields." };
   try {
@@ -333,6 +349,7 @@ export async function updateVoiceProfile(
 }
 
 export async function changeEvidenceControl(formData: FormData) {
+  await requireOwner();
   const parsed = evidenceControlSchema.safeParse({
     entityType: formData.get("entityType"),
     entityId: formData.get("entityId"),

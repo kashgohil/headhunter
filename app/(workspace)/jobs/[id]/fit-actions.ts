@@ -1,5 +1,7 @@
 "use server";
 
+
+import { requireOwner } from "@/lib/auth/server";
 import { revalidatePath } from "next/cache";
 
 import { dimensionKeys, type FitWeights } from "@/lib/fit-analysis/types";
@@ -9,6 +11,7 @@ import { fitOverrideSchema, fitWeightsSchema } from "@/lib/fit-analysis/validati
 export type FitActionState = { message?: string; error?: boolean };
 
 export async function analyzeFitAction(jobId: string, _state: FitActionState, formData: FormData): Promise<FitActionState> {
+  await requireOwner();
   // Authentication and ownership checks belong here before hosted use.
   const hasWeights = dimensionKeys.some((key) => formData.has(key));
   let weights: FitWeights | undefined;
@@ -29,6 +32,7 @@ export async function analyzeFitAction(jobId: string, _state: FitActionState, fo
 }
 
 export async function overrideFitAction(jobId: string, _state: FitActionState, formData: FormData): Promise<FitActionState> {
+  await requireOwner();
   // Authentication and ownership checks belong here before hosted use.
   const parsed = fitOverrideSchema.safeParse({ recommendation: formData.get("recommendation"), reason: formData.get("reason") });
   if (!parsed.success) return { error: true, message: parsed.error.issues[0]?.message ?? "Check the override." };

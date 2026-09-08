@@ -1,4 +1,6 @@
 "use server";
+
+import { requireOwner } from "@/lib/auth/server";
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
@@ -26,6 +28,7 @@ export async function saveContactAction(
   _state: FormState,
   form: FormData,
 ): Promise<FormState> {
+  await requireOwner();
   const parsed = contactSchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { message: parsed.error.issues[0].message };
   try {
@@ -59,6 +62,7 @@ export async function saveContactLinkAction(
   _state: FormState,
   form: FormData,
 ): Promise<FormState> {
+  await requireOwner();
   const parsed = contactLinkSchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { message: parsed.error.issues[0].message };
   try {
@@ -95,6 +99,7 @@ export async function addInteractionAction(
   _state: FormState,
   form: FormData,
 ): Promise<FormState> {
+  await requireOwner();
   const values = Object.fromEntries(form);
   const localDate =
     typeof values.occurredAt === "string" ? new Date(values.occurredAt) : null;

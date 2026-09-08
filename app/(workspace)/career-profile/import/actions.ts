@@ -1,5 +1,7 @@
 "use server";
 
+
+import { requireOwner } from "@/lib/auth/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ZodError } from "zod";
@@ -19,6 +21,7 @@ function refresh(id: string) {
   revalidatePath("/resumes"); revalidatePath("/");
 }
 export async function reviewFact(importId: string, proposalId: string, _state: ReviewState, form: FormData): Promise<ReviewState> {
+  await requireOwner();
   try {
     const record = getImport(sqlite, importId);
     const proposal = record?.proposals.find(p => p.id === proposalId);
@@ -34,6 +37,7 @@ export async function reviewFact(importId: string, proposalId: string, _state: R
   } catch (error) { return { error: true, message: message(error) }; }
 }
 export async function addFact(importId: string, _state: ReviewState, form: FormData): Promise<ReviewState> {
+  await requireOwner();
   try {
     const kind = String(form.get("kind")) as ProposalKind;
     if (!kinds.includes(kind)) throw new Error("Choose a fact type.");
@@ -42,10 +46,12 @@ export async function addFact(importId: string, _state: ReviewState, form: FormD
   } catch (error) { return { error: true, message: message(error) }; }
 }
 export async function retryImport(importId: string): Promise<ReviewState> {
+  await requireOwner();
   try { const added = retryExtraction(sqlite, importId); refresh(importId); return { message: `${added} new proposals. Existing edits and decisions were kept.` }; }
   catch { return { error: true, message: "Extraction could not finish. Saved text and review progress are still here; retry." }; }
 }
 export async function removeImport(importId: string, _state: ReviewState, form: FormData): Promise<ReviewState> {
+  await requireOwner();
   if (form.get("confirmation") !== "DELETE") return { error: true, message: "Type DELETE to remove the saved source and proposals." };
   try { deleteImport(sqlite, importId); }
   catch { return { error: true, message: "The import could not be removed. Try again." }; }

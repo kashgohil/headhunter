@@ -1,4 +1,6 @@
 "use server";
+
+import { requireOwner } from "@/lib/auth/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { sqlite } from "@/lib/db";
@@ -29,6 +31,7 @@ export async function createExperimentAction(
   _state: AnalyticsFormState,
   data: FormData,
 ): Promise<AnalyticsFormState> {
+  await requireOwner();
   let id: string;
   try {
     id = createExperiment(sqlite, Object.fromEntries(data));
@@ -43,6 +46,7 @@ export async function saveAnnotationAction(
   state: AnalyticsFormState,
   data: FormData,
 ): Promise<AnalyticsFormState> {
+  await requireOwner();
   try {
     const revision = saveAnnotation(
       sqlite,
@@ -61,6 +65,7 @@ export async function updateExperimentAction(
   state: AnalyticsFormState,
   data: FormData,
 ): Promise<AnalyticsFormState> {
+  await requireOwner();
   try {
     const revision = sqlite
       .transaction(() => {

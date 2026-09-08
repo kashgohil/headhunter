@@ -1,4 +1,6 @@
 "use server";
+
+import { requireOwner } from "@/lib/auth/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { startWeeklyReview } from "@/lib/weekly-review/repository";
@@ -13,6 +15,7 @@ export async function createReviewAction(
   _state: ReviewFormState,
   data: FormData,
 ): Promise<ReviewFormState> {
+  await requireOwner();
   let id: string;
   try {
     id = await startWeeklyReview(String(data.get("weekStart") ?? ""));
@@ -32,6 +35,7 @@ export async function saveReviewAction(
   _state: ReviewFormState,
   data: FormData,
 ): Promise<ReviewFormState> {
+  await requireOwner();
   let revision: number;
   try {
     revision = saveReviewEdits(

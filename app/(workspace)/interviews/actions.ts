@@ -1,4 +1,6 @@
 "use server";
+
+import { requireOwner } from "@/lib/auth/server";
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
@@ -34,6 +36,7 @@ export async function saveRoundAction(
   _state: FormState,
   form: FormData,
 ): Promise<FormState> {
+  await requireOwner();
   const parsed = roundPlanSchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { message: parsed.error.issues[0].message };
   try {
@@ -101,6 +104,7 @@ export async function saveDebriefAction(
   _state: FormState,
   form: FormData,
 ): Promise<FormState> {
+  await requireOwner();
   const parsed = debriefSchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { message: parsed.error.issues[0].message };
   try {
@@ -191,6 +195,7 @@ export async function savePracticeAction(
   _state: FormState,
   form: FormData,
 ): Promise<FormState> {
+  await requireOwner();
   const parsed = practiceSchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { message: parsed.error.issues[0].message };
   try {

@@ -1,5 +1,7 @@
 "use server";
 
+
+import { requireOwner } from "@/lib/auth/server";
 import { revalidatePath } from "next/cache";
 
 import { createCompanyResearchEntry, saveOpportunityResearch, updateResearchSourceState } from "@/lib/research/repository";
@@ -20,6 +22,7 @@ export async function createCompanyResearchAction(
   _previousState: CompanyResearchState,
   formData: FormData,
 ): Promise<CompanyResearchState> {
+  await requireOwner();
   // Authentication and ownership checks belong here before hosted use.
   const parsed = companyResearchSchema.safeParse({
     topic: formData.get("topic"),
@@ -45,6 +48,7 @@ export async function saveOpportunityResearchAction(
   _previousState: OpportunityResearchState,
   formData: FormData,
 ): Promise<OpportunityResearchState> {
+  await requireOwner();
   // Authentication and ownership checks belong here before hosted use.
   const parsed = opportunityResearchSchema.safeParse({ content: formData.get("content") });
   if (!parsed.success) return { message: parsed.error.issues[0]?.message ?? "Check the note and try again.", error: true };
@@ -57,6 +61,7 @@ export async function saveOpportunityResearchAction(
 }
 
 export async function updateResearchSourceStateAction(jobId: string, entryId: string, formData: FormData) {
+  await requireOwner();
   // Authentication and ownership checks belong here before hosted use.
   const parsed = researchSourceStateSchema.safeParse({ sourceState: formData.get("sourceState") });
   if (!parsed.success) return;

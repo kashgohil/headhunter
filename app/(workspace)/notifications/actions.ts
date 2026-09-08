@@ -1,4 +1,6 @@
 "use server";
+
+import { requireOwner } from "@/lib/auth/server";
 import { revalidatePath } from "next/cache";
 import type { FormState } from "@/components/action-form";
 import { notificationSchema } from "@/lib/notifications/preferences";
@@ -7,6 +9,7 @@ export async function savePreferences(
   _state: FormState,
   data: FormData,
 ): Promise<FormState> {
+  await requireOwner();
   const parsed = notificationSchema.safeParse({
     ...Object.fromEntries(data),
     eventKinds: data.getAll("eventKinds"),

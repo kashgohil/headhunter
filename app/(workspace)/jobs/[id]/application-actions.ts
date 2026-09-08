@@ -1,5 +1,7 @@
 "use server";
 
+
+import { requireOwner } from "@/lib/auth/server";
 import { revalidatePath } from "next/cache";
 
 import {
@@ -40,6 +42,7 @@ function refresh(jobId: string) {
 }
 
 export async function updateStageAction(jobId: string, _state: ApplicationActionState, formData: FormData): Promise<ApplicationActionState> {
+  await requireOwner();
   const parsed = stageTransitionSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { message: parsed.error.issues[0]?.message ?? "Check the stage change.", errors: parsed.error.flatten().fieldErrors };
   try { await updateStage(jobId, parsed.data); refresh(jobId); return { success: true, message: "Stage updated." }; }
@@ -47,6 +50,7 @@ export async function updateStageAction(jobId: string, _state: ApplicationAction
 }
 
 export async function saveNextActionAction(jobId: string, _state: ApplicationActionState, formData: FormData): Promise<ApplicationActionState> {
+  await requireOwner();
   const parsed = nextActionSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { message: "Check the next action.", errors: parsed.error.flatten().fieldErrors };
   try { await saveNextAction(jobId, parsed.data); refresh(jobId); return { success: true, message: "Next action saved." }; }
@@ -54,11 +58,13 @@ export async function saveNextActionAction(jobId: string, _state: ApplicationAct
 }
 
 export async function setChecklistItemAction(jobId: string, itemId: string, formData: FormData) {
+  await requireOwner();
   await setChecklistItem(jobId, itemId, formData.get("checked") === "true");
   refresh(jobId);
 }
 
 export async function createTaskAction(jobId: string, _state: ApplicationActionState, formData: FormData): Promise<ApplicationActionState> {
+  await requireOwner();
   const parsed = taskSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { message: "Check the task.", errors: parsed.error.flatten().fieldErrors };
   try { await createTask(jobId, parsed.data); refresh(jobId); return { success: true, message: "Task added." }; }
@@ -66,6 +72,7 @@ export async function createTaskAction(jobId: string, _state: ApplicationActionS
 }
 
 export async function createInterviewAction(jobId: string, _state: ApplicationActionState, formData: FormData): Promise<ApplicationActionState> {
+  await requireOwner();
   const parsed = interviewSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { message: parsed.error.issues[0]?.message ?? "Check the interview round.", errors: parsed.error.flatten().fieldErrors };
   try { await createInterview(jobId, parsed.data); refresh(jobId); return { success: true, message: "Interview round scheduled." }; }
@@ -73,11 +80,13 @@ export async function createInterviewAction(jobId: string, _state: ApplicationAc
 }
 
 export async function setTaskCompletedAction(jobId: string, taskId: string, formData: FormData) {
+  await requireOwner();
   await setTaskCompleted(jobId, taskId, formData.get("completed") === "true");
   refresh(jobId);
 }
 
 export async function createAnswerAction(jobId: string, _state: ApplicationActionState, formData: FormData): Promise<ApplicationActionState> {
+  await requireOwner();
   const values = Object.fromEntries(formData);
   if (values.canonicalAnswerId === "new") values.canonicalAnswerId = "";
   const parsed = applicationAnswerSchema.safeParse(values);
@@ -87,6 +96,7 @@ export async function createAnswerAction(jobId: string, _state: ApplicationActio
 }
 
 export async function updateAnswerAction(jobId: string, answerId: string, formData: FormData) {
+  await requireOwner();
   const answer = String(formData.get("answer") ?? "").trim();
   if (!answer || answer.length > 8000) return;
   await updateApplicationAnswer(jobId, answerId, answer);
@@ -94,6 +104,7 @@ export async function updateAnswerAction(jobId: string, answerId: string, formDa
 }
 
 export async function createArtifactAction(jobId: string, _state: ApplicationActionState, formData: FormData): Promise<ApplicationActionState> {
+  await requireOwner();
   const parsed = artifactSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { message: "Check the document.", errors: parsed.error.flatten().fieldErrors };
   try { await createArtifact(jobId, parsed.data); refresh(jobId); return { success: true, message: "Document added." }; }
@@ -101,6 +112,7 @@ export async function createArtifactAction(jobId: string, _state: ApplicationAct
 }
 
 export async function createOutreachAction(jobId: string, _state: ApplicationActionState, formData: FormData): Promise<ApplicationActionState> {
+  await requireOwner();
   const parsed = outreachSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { message: "Check the outreach draft.", errors: parsed.error.flatten().fieldErrors };
   try { await createOutreachDraft(jobId, parsed.data); refresh(jobId); return { success: true, message: "Private draft saved." }; }
@@ -108,6 +120,7 @@ export async function createOutreachAction(jobId: string, _state: ApplicationAct
 }
 
 export async function addTimelineNoteAction(jobId: string, formData: FormData) {
+  await requireOwner();
   const note = String(formData.get("note") ?? "").trim();
   if (!note || note.length > 4000) return;
   await addTimelineNote(jobId, note);
@@ -115,6 +128,7 @@ export async function addTimelineNoteAction(jobId: string, formData: FormData) {
 }
 
 export async function submitApplicationAction(jobId: string, _state: ApplicationActionState, formData: FormData): Promise<ApplicationActionState> {
+  await requireOwner();
   const parsed = submissionSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { message: parsed.error.issues[0]?.message ?? "Check the submission details.", errors: parsed.error.flatten().fieldErrors };
   try { await submitApplication(jobId, parsed.data); refresh(jobId); return { success: true, message: "Submission recorded with immutable snapshots." }; }

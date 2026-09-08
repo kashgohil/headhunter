@@ -1,5 +1,7 @@
 "use server";
 
+
+import { requireOwner } from "@/lib/auth/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
@@ -30,6 +32,7 @@ export type JobMetadataState = {
 };
 
 export async function captureJob(_previousState: CaptureJobState, formData: FormData): Promise<CaptureJobState> {
+  await requireOwner();
   // Authentication belongs here before this app is exposed beyond local use.
   const parsed = createJobSchema.safeParse({
     sourceType: formData.get("sourceType"),
@@ -60,6 +63,7 @@ export async function captureJobFromUrl(
   _previousState: ImportJobState,
   formData: FormData,
 ): Promise<ImportJobState> {
+  await requireOwner();
   // Authentication and rate limiting belong here before hosted use.
   const parsed = urlImportSchema.safeParse({ sourceUrl: formData.get("sourceUrl") });
   if (!parsed.success) {
@@ -100,6 +104,7 @@ export async function updateJobMetadataAction(
   _previousState: JobMetadataState,
   formData: FormData,
 ): Promise<JobMetadataState> {
+  await requireOwner();
   // Authentication and ownership checks belong here before hosted use.
   const parsed = jobMetadataSchema.safeParse({
     title: formData.get("title"),
