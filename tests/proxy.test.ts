@@ -57,5 +57,20 @@ describe("request access boundary", () => {
     });
     expect(proxy(request).status).toBe(200);
     expect(proxy(new NextRequest("https://jobs.example.com/api/health")).status).toBe(200);
+    expect(proxy(new NextRequest("http://127.0.0.1:3050/api/health")).status).toBe(200);
+  });
+
+  test("accepts the canonical HTTPS origin through the loopback reverse proxy", () => {
+    process.env.HEADHUNTER_ACCESS_MODE = "hosted";
+    process.env.APP_ORIGIN = "https://jobs.example.com";
+    process.env.HEADHUNTER_SESSION_SECRET = "s".repeat(32);
+    const request = new NextRequest("http://jobs.example.com/jobs", {
+      headers: {
+        host: "jobs.example.com",
+        "x-forwarded-proto": "https",
+      },
+    });
+    expect(proxy(request).status).toBe(303);
+    expect(proxy(request).headers.get("location")).toContain("/login");
   });
 });

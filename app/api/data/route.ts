@@ -1,7 +1,7 @@
 import { mkdir, readFile } from "node:fs/promises";
 import { writeFileSync } from "node:fs";
 import path from "node:path";
-import { authorizeRoute, unauthorizedResponse } from "@/lib/auth/server";
+import { authorizeRoute, hasTrustedMutationOrigin, unauthorizedResponse } from "@/lib/auth/server";
 import { accessMode } from "@/lib/auth/config";
 import { sqlite } from "@/lib/db";
 import {
@@ -22,7 +22,7 @@ const maximumBytes = 50 * 1024 * 1024;
 export async function POST(request: Request) {
   if (!(await authorizeRoute(request))) return unauthorizedResponse();
   const hosted = accessMode() === "hosted";
-  if (request.headers.get("origin") !== new URL(request.url).origin)
+  if (!hasTrustedMutationOrigin(request))
     return Response.json(
       { message: "Open data settings in Headhunter to continue." },
       { status: 403, headers },

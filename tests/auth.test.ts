@@ -10,6 +10,9 @@ import {
 describe("hosted access primitives", () => {
   test("requires explicit production mode and a canonical HTTPS origin", () => {
     expect(() => accessMode({ NODE_ENV: "production" })).toThrow();
+    expect(
+      accessMode({ NODE_ENV: "production", NEXT_PHASE: "phase-production-build" }),
+    ).toBe("local");
     expect(accessMode({ NODE_ENV: "development" })).toBe("local");
     expect(accessMode({ HEADHUNTER_ACCESS_MODE: "hosted" })).toBe("hosted");
     expect(() => configuredOrigin({ APP_ORIGIN: "http://example.com" })).toThrow();

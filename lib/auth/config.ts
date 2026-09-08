@@ -5,6 +5,7 @@ type Environment = Record<string, string | undefined>;
 export function accessMode(environment: Environment = process.env): AccessMode {
   const configured = environment.HEADHUNTER_ACCESS_MODE;
   if (configured === "hosted" || configured === "local") return configured;
+  if (environment.NEXT_PHASE === "phase-production-build") return "local";
   if (environment.NODE_ENV === "production") {
     throw new Error(
       "Set HEADHUNTER_ACCESS_MODE explicitly before starting a production server.",

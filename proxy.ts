@@ -56,6 +56,13 @@ export default function proxy(request: NextRequest) {
     return deny(request, 403);
   }
 
+  if (
+    request.nextUrl.pathname === "/api/health" &&
+    isLoopbackHostname(request.nextUrl.hostname)
+  ) {
+    return withSecurityHeaders(NextResponse.next(), mode === "hosted");
+  }
+
   let expectedOrigin = request.nextUrl.origin;
   if (mode === "hosted") {
     try {
@@ -63,7 +70,18 @@ export default function proxy(request: NextRequest) {
     } catch {
       return new NextResponse("Hosted access is not configured.", { status: 503 });
     }
-    if (request.nextUrl.origin !== expectedOrigin) return deny(request, 403);
+    const expected = new URL(expectedOrigin);
+    const forwardedProtocol = request.headers
+      .get("x-forwarded-proto")
+      ?.split(",")[0]
+      ?.trim();
+    const protocol = forwardedProtocol ?? request.nextUrl.protocol.replace(":", "");
+    if (
+      (request.headers.get("host") ?? request.nextUrl.host) !== expected.host ||
+      protocol !== expected.protocol.replace(":", "")
+    ) {
+      return deny(request, 403);
+    }
   }
 
   if (!safeMethods.has(request.method)) {

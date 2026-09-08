@@ -3,7 +3,7 @@ import "server-only";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { accessMode, isLoopbackHostname } from "@/lib/auth/config";
+import { accessMode, configuredOrigin, isLoopbackHostname } from "@/lib/auth/config";
 import {
   SESSION_COOKIE,
   validateSessionSecret,
@@ -73,4 +73,10 @@ export function unauthorizedResponse() {
       },
     },
   );
+}
+
+export function hasTrustedMutationOrigin(request: Request) {
+  const expected =
+    accessMode() === "hosted" ? configuredOrigin() : new URL(request.url).origin;
+  return request.headers.get("origin") === expected;
 }
