@@ -16,7 +16,8 @@ import {
   refreshGoogleCredentials,
   revokeGoogleCredential,
 } from "@/lib/calendar/google";
-import { createInterviewFromCalendarEvent, linkCalendarEvent, storeProviderEvents } from "@/lib/calendar/storage";
+import { createInterviewFromCalendarEvent, linkCalendarEvent } from "@/lib/calendar/storage";
+import { calendarSyncFuture, calendarSyncPast, synchronizeCalendar } from "@/lib/calendar/service";
 import { db, sqlite } from "@/lib/db";
 import {
   applicationInterviews,
@@ -29,8 +30,6 @@ import {
 
 const googleConnectionId = "google-local";
 const stateLifetime = 10 * 60_000;
-const syncPast = 30 * 86_400_000;
-const syncFuture = 365 * 86_400_000;
 const staleAfter = 15 * 60_000;
 
 function hashState(state: string) {
@@ -114,7 +113,7 @@ export async function getCalendarWorkspace() {
       .leftJoin(calendarEventLinks, eq(calendarEventLinks.eventId, externalCalendarEvents.id))
       .leftJoin(applicationInterviews, eq(applicationInterviews.id, calendarEventLinks.interviewId))
       .leftJoin(jobs, eq(jobs.id, applicationInterviews.jobId))
-      .where(and(eq(externalCalendars.selected, true), eq(externalCalendarEvents.removed, false), gte(externalCalendarEvents.endAt, new Date(now.getTime() - syncPast)), lte(externalCalendarEvents.startAt, new Date(now.getTime() + syncFuture))))
+      .where(and(eq(externalCalendars.selected, true), eq(externalCalendarEvents.removed, false), gte(externalCalendarEvents.endAt, new Date(now.getTime() - calendarSyncPast)), lte(externalCalendarEvents.startAt, new Date(now.getTime() + calendarSyncFuture))))
       .orderBy(asc(externalCalendarEvents.startAt)),
     db.select({ round: applicationInterviews, company: jobs.company, jobTitle: jobs.title }).from(applicationInterviews).innerJoin(jobs, eq(jobs.id, applicationInterviews.jobId)).orderBy(asc(applicationInterviews.scheduledAt)),
     db.select({ id: jobs.id, company: jobs.company, title: jobs.title }).from(jobs).orderBy(asc(jobs.company), asc(jobs.title)),
@@ -142,35 +141,16 @@ export async function selectCalendars(calendarIds: string[]) {
 }
 
 export async function syncGoogleCalendar(now = new Date()) {
-  const record = await db.select().from(calendarConnections).where(eq(calendarConnections.id, googleConnectionId)).get();
-  if (!record) throw new Error("Connect Google Calendar before syncing.");
-  await db.update(calendarConnections).set({ lastAttemptAt: now, updatedAt: now }).where(eq(calendarConnections.id, googleConnectionId));
-  try {
-    const credentials = await refreshGoogleCredentials(decryptCalendarCredentials(record.encryptedCredentials));
-    const remoteCalendars = await listGoogleCalendars(credentials.accessToken);
-    const selected = await db.select().from(externalCalendars).where(and(eq(externalCalendars.connectionId, googleConnectionId), eq(externalCalendars.selected, true)));
-    const selectedByProviderId = new Set(selected.map((calendar) => calendar.providerCalendarId));
-    const eventSets = await Promise.all(remoteCalendars.filter((calendar) => selectedByProviderId.has(calendar.providerCalendarId)).map(async (calendar) => ({
-      providerCalendarId: calendar.providerCalendarId,
-      events: await listGoogleEvents(credentials.accessToken, calendar.providerCalendarId, calendar.timeZone, { from: new Date(now.getTime() - syncPast), to: new Date(now.getTime() + syncFuture) }),
-    })));
-    sqlite.transaction(() => {
-      upsertCalendars(remoteCalendars, now);
-      for (const eventSet of eventSets) {
-        const local = sqlite.prepare("SELECT id FROM external_calendars WHERE connection_id=? AND provider_calendar_id=?").get(googleConnectionId, eventSet.providerCalendarId) as { id: string } | undefined;
-        if (local) storeProviderEvents(sqlite, local.id, eventSet.events, now.getTime());
-      }
-      sqlite.prepare("UPDATE calendar_connections SET encrypted_credentials=?,status='connected',last_success_at=?,last_error=NULL,updated_at=? WHERE id=?")
-        .run(encryptCalendarCredentials(credentials), now.getTime(), now.getTime(), googleConnectionId);
-      audit("calendar.synced", "calendar_connection", googleConnectionId, now);
-    })();
-    return eventSets.reduce((total, item) => total + item.events.length, 0);
-  } catch (error) {
-    const expired = error instanceof CalendarAuthenticationError;
-    const message = expired ? "Google access expired or was revoked. Reconnect to resume syncing." : "Calendar sync failed. Existing events and interview notes were kept; retry when the provider is available.";
-    await db.update(calendarConnections).set({ status: expired ? "expired" : "error", lastError: message, updatedAt: now }).where(eq(calendarConnections.id, googleConnectionId));
-    throw new Error(message, { cause: error });
-  }
+  const count = await synchronizeCalendar(sqlite, googleConnectionId, now, {
+    decrypt: decryptCalendarCredentials,
+    encrypt: encryptCalendarCredentials,
+    refresh: refreshGoogleCredentials,
+    listCalendars: listGoogleCalendars,
+    listEvents: (accessToken, calendar, range) => listGoogleEvents(accessToken, calendar.providerCalendarId, calendar.timeZone, range),
+    isAuthenticationError: (error) => error instanceof CalendarAuthenticationError,
+  });
+  audit("calendar.synced", "calendar_connection", googleConnectionId, now);
+  return count;
 }
 
 export function linkEventToInterview(eventId: string, interviewId: string) {

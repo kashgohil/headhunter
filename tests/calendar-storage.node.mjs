@@ -4,6 +4,7 @@ import Database from 'better-sqlite3';
 import { readFileSync } from 'node:fs';
 
 import { createInterviewFromCalendarEvent, linkCalendarEvent, storeProviderEvents } from '../lib/calendar/storage.ts';
+import { synchronizeCalendar } from '../lib/calendar/service.ts';
 
 function database() {
   const db = new Database(':memory:');
@@ -58,6 +59,40 @@ describe('calendar event persistence', () => {
       assert.match(interviewId, /^[a-f0-9-]{36}$/);
       assert.equal(db.prepare('SELECT count(*) n FROM calendar_event_links').get().n, 1);
       assert.throws(() => createInterviewFromCalendarEvent(db, eventId, 'job'), /already linked/);
+    } finally { db.close(); }
+  });
+
+  it('keeps cached events and manual notes when sync fails, and exposes authentication expiry', async () => {
+    const db = database();
+    const calendar = { providerCalendarId: 'primary', name: 'Interviews', timeZone: 'America/New_York', primary: true };
+    const credentials = { accessToken: 'access', refreshToken: 'refresh', expiresAt: Date.now() + 60_000 };
+    const dependencies = {
+      decrypt: () => credentials,
+      encrypt: () => 'encrypted-next',
+      refresh: async value => value,
+      listCalendars: async () => [calendar],
+      listEvents: async () => [event()],
+      isAuthenticationError: error => error?.name === 'AuthError',
+    };
+    try {
+      await synchronizeCalendar(db, 'connection', new Date('2026-09-08T12:00:00Z'), dependencies);
+      const eventId = db.prepare('SELECT id FROM external_calendar_events').get().id;
+      linkCalendarEvent(db, eventId, 'interview');
+      await assert.rejects(
+        synchronizeCalendar(db, 'connection', new Date('2026-09-08T12:05:00Z'), { ...dependencies, listEvents: async () => { throw new Error('provider unavailable'); } }),
+        /Existing events and interview notes were kept/,
+      );
+      assert.equal(db.prepare('SELECT count(*) n FROM external_calendar_events').get().n, 1);
+      assert.deepEqual(db.prepare("SELECT notes,status FROM application_interviews WHERE id='interview'").get(), { notes: 'Keep these private notes', status: 'scheduled' });
+      assert.equal(db.prepare("SELECT status FROM calendar_connections WHERE id='connection'").get().status, 'error');
+
+      const authError = new Error('invalid grant');
+      authError.name = 'AuthError';
+      await assert.rejects(
+        synchronizeCalendar(db, 'connection', new Date('2026-09-08T12:10:00Z'), { ...dependencies, refresh: async () => { throw authError; } }),
+        /Reconnect/,
+      );
+      assert.equal(db.prepare("SELECT status FROM calendar_connections WHERE id='connection'").get().status, 'expired');
     } finally { db.close(); }
   });
 });

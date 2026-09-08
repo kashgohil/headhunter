@@ -66,6 +66,7 @@ export default async function CalendarSettingsPage({ searchParams }: { searchPar
               <CardContent className="space-y-4 text-sm">
                 <dl className="space-y-3"><div><dt className="text-xs text-muted-foreground">Last successful sync</dt><dd className="mt-1 font-mono text-xs">{connected.lastSuccessAt ? connected.lastSuccessAt.toISOString().replace("T", " ").slice(0, 19) + " UTC" : "Not synced yet"}</dd></div><div><dt className="text-xs text-muted-foreground">Access</dt><dd className="mt-1">Calendar list and event details, read only</dd></div></dl>
                 {connected.lastError ? <p role="alert" className="flex items-start gap-2 rounded-md border border-destructive/25 p-3 text-xs leading-5 text-destructive"><AlertTriangle className="mt-0.5 size-4 shrink-0" />{connected.lastError}</p> : null}
+                {connected.status === "expired" ? <Button asChild variant="outline" className="w-full"><a href="/api/calendar/google/start">Reconnect Google</a></Button> : null}
                 <ActionForm action={syncCalendarAction} label="Sync now"><span className="sr-only">Refresh selected calendars</span></ActionForm>
                 <ActionForm action={disconnectCalendarAction} label="Disconnect" className="border-t pt-4"><p className="text-xs leading-5 text-muted-foreground">Removes credentials and cached calendar events. Existing interview rounds, plans, practice, and notes remain.</p></ActionForm>
               </CardContent>
